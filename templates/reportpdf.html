@@ -1,0 +1,25 @@
+{% include 'navbar(signed).html' %}
+<div class="bg-light rounded-3 mb-4 p-5">
+    <div class="container-fluid py-5">
+        <h1 class="display-6 fw-bold text-center mb-2">DOWNLOAD PDF</h1><br><br>
+        <div class="dropdown show text-center">    
+            <form method="POST" action="" >
+                <input type="hidden" name="report_type" value="machine_data">
+                <button class="btn btn-lg btn-outline-secondary btn-block" type="submit">Machine Data Report</button>
+            </form><br>
+            <form method="POST" action="">
+                <input type="hidden" name="report_type" value="employee_data">
+                <button class="btn btn-lg btn-outline-secondary btn-block" type="submit">Employee Data Report</button>
+            </form><br>
+            <form method="POST" action="">
+                <input type="hidden" name="report_type" value="maintenance_data">
+                <button class="btn btn-lg btn-outline-secondary btn-block" type="submit">Maintenance Data Report</button>
+            </form><br>
+            <form method="POST" action="">
+                <input type="hidden" name="report_type" value="summary_data">
+                <button class="btn btn-lg btn-outline-secondary btn-block" type="submit">Machinewise Maintenance Summary Report</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% include 'footer.html' %}

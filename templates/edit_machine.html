@@ -1,0 +1,62 @@
+{% include 'navbar(signed).html' %}
+
+    <!-- Update Form -->
+    <div class="p-5 mb-4 bg-light rounded-3">
+      <div class="container-fluid py-5">
+        <div class='btn btn-info' id="message" style="display:none; width:100%; margin-top:10px;">{{message}}</div>
+        <h1 class="display-7 fw-bold text-center mb-2">Update</h1>
+        <form id="form-insert" action="" method="POST">
+          
+          <label for="inputName" class="mb-2">Machine Name</label>
+          <input type="text" name="inputName" class="form-control" placeholder="Machine Name" value="{{machine.mac_name}}"required autofocus/><br>
+          
+          <label for="inputDescription" class="mb-2">Machine Description</label>
+          <input type="text" name="inputDescription" class="form-control" placeholder="Machine Description" value="{{machine.mac_desc}}" required autofocus/><br>
+
+          <label for="inputCategory" class="mb-2">Machine Category</label>
+          <select class="form-control" id="inputCategory" name= "inputCategory">
+            {% for i in category %}
+              {% if i.mac_cat_code == machine.mac_cat_code %}
+                <option value='{{i.mac_cat_code}}' selected="selected">{{i.mac_cat_name}}</option>
+              {% else %}
+                <option value='{{i.mac_cat_code}}'>{{i.mac_cat_name}}</option>
+              {% endif %}
+            {% endfor %}
+          </select><br>
+
+          <label for="inputLocation" class="mb-2">Machine Location</label>
+          <select class="form-control" id="inputLocation" name= "inputLocation" >
+            {% for i in location %}
+              {% if i.mac_loc_code == machine.mac_loc_code %}
+                <option value='{{i.mac_loc_code}}' selected="selected">{{i.mac_loc_name}}</option>
+              {% else %}
+                <option value='{{i.mac_loc_code}}'>{{i.mac_loc_name}}</option>
+              {% endif %}
+            {% endfor %}
+          </select><br>
+          <button class="btn btn-lg btn-primary btn-block" type="submit">UPDATE</button>      
+        </form>
+      </div>
+    </div>
+
+{% include 'footer.html' %}
+
+  <script>
+
+     $(document).ready($(function() {
+        $('#inputCategory, #inputLocation').change(function() {
+            var selectedCategory = $("#inputCategory").val();
+            var selectedLocation = $("#inputLocation").val();
+            console.log(selectedCategory,selectedLocation)
+            $.ajax({
+                data: { 
+                        category: selectedCategory,
+                        location: selectedLocation
+                      },
+            });
+        });
+    }));
+
+  </script>
+</body>
+</html>

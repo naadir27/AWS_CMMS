@@ -1,0 +1,45 @@
+{% include 'navbar(signed).html' %}
+  <div class="bg-light rounded-3 mb-4 p-5">
+    <h1 class="text-center fw-light display-5"><u>USER DASHBOARD</u></h1><br><br><br><br><br>
+    <div class="dropdown show text-center">
+      <a class="btn btn-outline-info dropdown-toggle" href="#" role="button" id="ADD" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Add</a>&emsp;
+    
+      <div class="dropdown-menu" aria-labelledby="ADD">
+        <a class="dropdown-item" href="/machine">Machine</a>
+        <a class="dropdown-item" href="/category">Category</a>
+        <a class="dropdown-item" href="/location">Location</a>
+      </div>
+
+        <a class="btn btn-outline-custom-color dropdown-toggle " href="#" role="button" id="View" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">View/Edit</a>&emsp;
+      
+        <div class="dropdown-menu" aria-labelledby="View">
+          <a class="dropdown-item" href="/view_mac">All Machine</a>
+          <a class="dropdown-item" href="/view_cat">All Category</a>
+          <a class="dropdown-item" href="/view_loc">All Location</a>
+        </div>
+
+        <a class="btn btn-outline-warning dropdown-toggle" href="#" role="button" id="B_Main" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Maintenance</a>&emsp;
+      
+        <div class="dropdown-menu" aria-labelledby="B_Main">
+          <a class="dropdown-item" href="/maintenance">New Maintenance</a>
+          <a class="dropdown-item" href="/view_trans">View Maintenance</a>
+        </div>
+
+        <a class="btn btn-outline-secondary dropdown-toggle" href="#" role="button" id="Reports" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Reports</a>
+
+        <div class="dropdown-menu" aria-labelledby="Reports">
+          <a class="dropdown-item" href="/report">Machine Report</a>
+          <a class="dropdown-item" href="/pdf">Download PDF</a>
+          <a class="dropdown-item" href="/chart">Data Visualization</a>
+        </div>
+    </div><br><br><br><br><br><br>
+  </div>
+{% include 'footer.html' %} 
+</body>
+<style>
+  .btn-outline-custom-color {
+  border-color: #636628;
+  color: #636628;
+}
+</style>
+</html>
