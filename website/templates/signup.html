@@ -1,0 +1,50 @@
+{% include 'navbar(signed).html' %}
+<div class="bg-light rounded-3 mb-4 p-5">
+	<div class="container-fluid py-5">
+		<h1 class="text-center fw-bold display-5">Sign Up</h1>
+
+		{% if current_user.is_admin %}
+			<!-- Admin content -->
+			<form id="form-insert" method="POST">
+				
+				<label for="inputName" class="mb-2">Name</label><br>
+				<input type="text" name="inputName" id="inputName" class="form-control" placeholder="Name" required autofocus><br>
+				
+				<label for="inputEmail" class="mb-2">Email address</label>
+				<input type="email" name="inputEmail" id="inputEmail" class="form-control" placeholder="Email address" required autofocus><br>
+				
+				<label for="inputPassword" class="mb-2">Password</label>
+				<input type="password" name="inputPassword" id="inputPassword" class="form-control" placeholder="Password" required><br>
+
+				<label for="inputLevel" class="mb-2">User Level</label>
+				<select class="form-control" id="inputLevel" name= "inputLevel">
+					<option value="" selected="selected">Select a Level</option>
+					<option value="MANAGER">MANAGER</option>
+					<option value="OPERATOR">MACHINE OPERATOR</option>
+					<option value="TECHNICIAN">SERVICE TECHNICIAN</option>
+				</select><br>
+				<button id="btnSignIn" class="btn btn-lg btn-primary btn-block" type="submit">Sign Up</button>
+			</form>
+		{% else %}
+			<!-- Content for non-admin users -->
+			
+			<div class="container mt-4 d-flex justify-content-center">
+				<!-- Flash Messages -->
+				{% with messages = get_flashed_messages(with_categories=true) %}
+					{% if messages %}
+						<div class="alert-container text-center border border-danger p-3">
+							{% for category, message in messages %}
+								<div class="alert alert-{{ category }}">
+									{{ message }}
+								</div>
+							{% endfor %}
+						</div>
+					{% endif %}
+				{% endwith %}
+			</div>			
+		{% endif %}	
+	</div>
+</div>     
+{% include 'footer.html' %}
+</body>
+</html>
