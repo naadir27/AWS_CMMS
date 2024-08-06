@@ -3,13 +3,18 @@
     <h2 class="text-center fw-light display-4">Welcome {{current_user.username}}!</h2><br>
     <h1 class="text-center fw-light display-6"><u>DASHBOARD</u></h1><br><br><br>
     <div class="dropdown show text-center">
-      <a class="btn btn-outline-info dropdown-toggle" href="#" role="button" id="ADD" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Add</a>&emsp;
-    
-      <div class="dropdown-menu" aria-labelledby="ADD">
-        <a class="dropdown-item" href="/machine">Machine</a>
-        <a class="dropdown-item" href="/category">Category</a>
-        <a class="dropdown-item" href="/location">Location</a>
-      </div>
+      {% if current_user.is_admin %}
+      
+        <a class="btn btn-outline-info dropdown-toggle" href="#" role="button" id="ADD" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Add</a>&emsp;
+
+        <div class="dropdown-menu" aria-labelledby="ADD">
+          <a class="dropdown-item" href="/machine">Machine</a>
+          <a class="dropdown-item" href="/category">Category</a>
+          <a class="dropdown-item" href="/location">Location</a>
+        </div>
+      {% else %}
+          <a class="btn btn-outline-info dropdown-toggle disabled" href="#" role="button" id="ADD" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" aria-disabled="true">Add</a>&emsp;
+      {% endif %}
 
         <a class="btn btn-outline-custom-color dropdown-toggle " href="#" role="button" id="View" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">View/Edit</a>&emsp;
       
