@@ -9,8 +9,8 @@
     <script>
         function redirectAfterDelay() {
             setTimeout(function() {
-                window.location.href = "{{ url_for('auth.userHome') }}"; // Redirect to userHome
-            }, 3000); // Delay in milliseconds (3000 ms = 3 seconds)
+                window.location.href = "{{ url_for('auth.dashBoard') }}"; // Redirect to userHome
+            }, 2500); // Delay in milliseconds (2500 ms = 2.5 seconds)
         }
     </script>
 </head>
@@ -27,7 +27,7 @@
                 </div>
             {% endif %}
         {% endwith %}
-        <p>If you are not redirected automatically, <a href="{{ url_for('auth.userHome') }}">click here</a>.</p>
+        <p>If you are not redirected automatically, <a href="{{ url_for('auth.dashBoard') }}">click here</a>.</p>
     </div>
 
     <!-- Bootstrap JS and dependencies -->

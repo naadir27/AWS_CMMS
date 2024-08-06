@@ -1,4 +1,19 @@
 {% include 'navbar(signed).html' %}
+
+  <!-- Notifies the User -->
+  {% with messages = get_flashed_messages(with_categories=True) %}
+  {% if messages %}
+    <div class="container">
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+  {% endwith %}
+
   <div class="bg-light rounded-3 mb-4 p-5">
     <table class="table table-striped">
         <tr>
@@ -17,8 +32,8 @@
             <td>{{row.mac_cat_name}}</td>
             <td>{{row.mac_loc_name}}</td>
             <td>
-              <a class="edit" title="Edit" href="{{url_for('editMachine',mac_code=row.mac_code)}}"><i class="fa-regular fa-pen-to-square"></i></a>&emsp;
-              <a title="Delete" onclick="return confirm('Are you sure to delete?');"  href="{{url_for('deleteMachine',mac_code=row.mac_code)}}"><i class="fa-regular fa-trash-can"></i></a>
+              <a class="edit" title="Edit" href="{{ url_for('views.editMachine', mac_code = row.mac_code) }}"><i class="fa-regular fa-pen-to-square"></i></a>&emsp;
+              <a title="Delete" onclick="return confirm('Are you sure to delete?');"  href="{{ url_for('views.deleteMachine',mac_code=row.mac_code) }}"><i class="fa-regular fa-trash-can"></i></a>
             </td>
 	    </tr>
         {% endfor %}

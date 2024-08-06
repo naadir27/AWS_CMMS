@@ -26,25 +26,25 @@
 				<button id="btnSignIn" class="btn btn-lg btn-primary btn-block" type="submit">Sign Up</button>
 			</form>
 		{% else %}
-			<!-- Content for non-admin users -->
-			
-			<div class="container mt-4 d-flex justify-content-center">
-				<!-- Flash Messages -->
-				{% with messages = get_flashed_messages(with_categories=true) %}
-					{% if messages %}
-						<div class="alert-container text-center border border-danger p-3">
-							{% for category, message in messages %}
-								<div class="alert alert-{{ category }}">
-									{{ message }}
-								</div>
-							{% endfor %}
-						</div>
-					{% endif %}
-				{% endwith %}
-			</div>			
-		{% endif %}	
-	</div>
-</div>     
-{% include 'footer.html' %}
+		<!-- Content for non-admin users -->
+		<div class="container mt-4 d-flex justify-content-center">
+			<!-- Notifies the User -->
+			{% with messages = get_flashed_messages(with_categories=True) %}
+			{% if messages %}
+				<div class="container">
+				{% for category, message in messages %}
+					<div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+					{{ message }}
+					<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+					</div>
+				{% endfor %}
+				</div>
+			{% endif %}
+			{% endwith %}
+		{% endif %}
+		</div>
+	</div>     
+</div>
+	{% include 'footer.html' %}
 </body>
 </html>

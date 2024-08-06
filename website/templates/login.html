@@ -1,21 +1,22 @@
 {% include 'navbar.html' %} 
 <div class="bg-light">
-	<div class="container mt-4">
-		<!-- Flash Messages -->
-		{% with messages = get_flashed_messages(with_categories=true) %}
-			{% if messages %}
-				<div class="alert-container">
-					{% for category, message in messages %}
-						<div class="alert alert-{{ category }}">
-							{{ message }}
-						</div>
-					{% endfor %}
-				</div>
-			{% endif %}
-		{% endwith %}
+  <!-- Notifies the User -->
+  {% with messages = get_flashed_messages(with_categories=True) %}
+  {% if messages %}
+    <div class="container">
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+  {% endwith %}
+
 	</div>
 	<div class="container-fluid py-5">
-		<!-- <h1 class="text-center fw-bold display-5">CMMS App</h1> -->
+		<h1 class="text-center fw-bold display-5">CMMS App</h1>
 		<form id="form-insert" action="" method="POST">
 			
 			<label for="inputEmail" class="mb-2">Email address</label><br>

@@ -1,24 +1,37 @@
 {% include 'navbar(signed).html' %}
 
-<div class="bg-light rounded-3 mb-4 p-5">
-  <h2 class="display-7 fw-bold text-center mb-2">VIEW CATEGORY</h2><br>
-  <table class="table table-striped">
-      <tr>
-          <th scope="col">CATEGORY CODE</th>
-          <th scope="col">CATEGORY NAME</th>
-          <th scope="col">EDIT</th>
-      </tr>
-      {% for i in category %}
-      <tr>
-          <td>{{i.mac_cat_code}}</td>
-          <td>{{i.mac_cat_name}}</td>
-          <td>
-            <a class="edit" title="Edit" href="{{url_for('editCategory',mac_cat_code=i.mac_cat_code)}}"><i class="fa-regular fa-pen-to-square"></i></a>&emsp;
-          </td>
-      </tr>
+  {% with messages = get_flashed_messages(with_categories=True) %}
+  {% if messages %}
+    <div class="container">
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
       {% endfor %}
-  </table>
-</div>
+    </div>
+  {% endif %}
+  {% endwith %}
+
+  <div class="bg-light rounded-3 mb-4 p-5">
+    <h2 class="display-7 fw-bold text-center mb-2">VIEW CATEGORY</h2><br>
+    <table class="table table-striped">
+        <tr>
+            <th scope="col">CATEGORY CODE</th>
+            <th scope="col">CATEGORY NAME</th>
+            <th scope="col">EDIT</th>
+        </tr>
+        {% for i in category %}
+        <tr>
+            <td>{{i.mac_cat_code}}</td>
+            <td>{{i.mac_cat_name}}</td>
+            <td>
+              <a class="edit" title="Edit" href="{{ url_for('views.editCategory', mac_cat_code = i.mac_cat_code) }}"><i class="fa-regular fa-pen-to-square"></i></a>&emsp;
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+  </div>
 
 {% include 'footer.html' %}
 

@@ -1,4 +1,5 @@
 import bcrypt
+from functools import wraps
 from flask import Blueprint, render_template, request, flash, redirect, url_for, session
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import login_user, login_required, logout_user, current_user, LoginManager,UserMixin
@@ -7,41 +8,49 @@ from .models import User
 
 auth = Blueprint('auth', __name__)
 
-# Route to Open & Register SignUp Form
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated:
+            flash('Please log in to access this page.', 'danger')
+            return redirect(url_for('auth.login'))
+        if not getattr(current_user, 'is_admin', False):
+            flash('You are not authorized to access this page!', 'danger')
+            return redirect(url_for('/'))  # Adjust the redirect URL as needed
+        return f(*args, **kwargs)
+    return decorated_function
+
+# Route to Open & Register SignUp Form via Admin Login
 @auth.route('/signup', methods=['GET', 'POST'])
-@login_required
+@admin_required
 def signup():
-    # Ensure only admin can access this page
-    if not current_user.is_admin:
-        flash('You are not authorized to access this page!', 'danger')
-        return redirect(url_for('auth.login'))  # Redirect to a safe page or home
     
     if request.method == 'GET':
         active_page = 'signup'
         title = "Sign Up"
-        return render_template('signup.html', title=title, active_page=active_page)
+        return render_template('signup.html', title = title, active_page = active_page)
 
-    # POST method
     if request.method == 'POST':
-        user_name = request.form['inputName']
-        user_email = request.form['inputEmail']
-        user_password = request.form['inputPassword']
+        username = request.form['inputName']
+        email = request.form['inputEmail']
+        password = request.form['inputPassword']
         user_level = request.form['inputLevel']
-        
-        # hashed_password = bcrypt.generate_password_hash(user_password).decode('utf-8')
-        hashed_password = generate_password_hash(user_password)
-        # Creating the cursor object for executing SQL queries with the connected MySQL database
-        con = db.connection.cursor()
 
-        insert = "INSERT INTO users (user_name, user_email, user_password, user_level) VALUES (%s, %s, %s, %s)"
-        con.execute(insert, (user_name, user_email, hashed_password, user_level))
+        # Create a new user instance
+        new_user = User(username=username, email=email, password='', user_level=user_level)
+        new_user.set_password(password)  # Hash the password
+
+        cursor = db.connection.cursor()
+        insert_query = "INSERT INTO users (user_name, user_email, user_password, user_level) VALUES (%s, %s, %s, %s)"
+        cursor.execute(insert_query, (new_user.username, new_user.email, new_user.password, new_user.user_level))
         db.connection.commit()
-        con.close()
-        
+        cursor.close()
+
         flash('User registered successfully!', 'success')
         return redirect(url_for('auth.login'))
     else:
-        return render_template('signup.html', title="Sign Up")
+        flash('User registration Failed!', 'danger')
+        return render_template('signup.html', title = "Sign Up")
 
 # Route for Login
 @auth.route('/login', methods=['GET', 'POST'])
@@ -52,10 +61,9 @@ def login():
     if request.method == 'POST':
         user_email = request.form['inputEmail']
         user_password = request.form['inputPassword']
-
+        
         user = User.get_by_email(user_email)
-
-        if user and check_password_hash(user.password, user_password):
+        if user and user.check_password(user_password):
             flash('Login successful! Redirecting...', 'success')
             login_user(user) # Logs in the user and manages the session
             return redirect(url_for('auth.redirect_user_home'))
@@ -71,12 +79,12 @@ def redirect_user_home():
     return render_template('redirect_user_home.html')
 
 # Route for User Page after login
-@auth.route('/userHome', methods=['GET'])
+@auth.route('/dashBoard', methods=['GET'])
 @login_required
-def userHome():
+def dashBoard():
     title = "User Home"
     username = current_user.username  # Access the current logged-in user's username
-    return render_template('userHome.html', title=title, username=username)
+    return render_template('dashBoard.html', title = title, username = username)
 
 @auth.route('/logout')
 @login_required

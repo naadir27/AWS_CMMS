@@ -2,6 +2,7 @@ from flask import Flask
 from flask_mysqldb import MySQL
 from os import path
 from flask_login import LoginManager
+from fpdf import FPDF 
 
 db = MySQL()
 
@@ -12,8 +13,9 @@ def create_app():
     # app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:naadir123@localhost:3306/userdb'
     app.config['MYSQL_USER'] = 'root'
     app.config['MYSQL_PASSWORD'] = 'naadir123'
-    app.config['MYSQL_DB'] = 'userdb'
+    app.config['MYSQL_DB'] = 'cmms_dup'
     app.config['MYSQL_HOST'] = 'localhost'
+    app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
     db.init_app(app)
 
     # Initialize LoginManager
@@ -31,7 +33,7 @@ def create_app():
         user = cursor.fetchone()
         cursor.close()
         if user:
-            return User(id=user[0], username=user[1], email=user[2])
+            return User(id=user['user_id'], username=user['user_name'], email=user['user_email'],)
         return None
 
     @login_manager.user_loader
