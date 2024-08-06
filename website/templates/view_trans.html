@@ -1,4 +1,5 @@
 {% include 'navbar(signed).html' %}
+<div class="container">
 <div class="table-responsive">
     <table class="table table-dark table-striped">
         <thead>
@@ -32,18 +33,20 @@
             {% if row.completed == 0 %}
             <td style="text-align:center;"><input type="checkbox" onclick="return false;"></td>
             <td>
-                <a class="edit" title="Edit" href="{{url_for('editTrans',trans_num=row.trans_num,mac_code=row.mac_code)}}"><i class="fa-regular fa-pen-to-square"></i></a>
+                <a class="edit" title="Edit" href="{{url_for('views.editTrans',trans_num=row.trans_num,mac_code=row.mac_code)}}"><i class="fa-regular fa-pen-to-square"></i></a>
             </td>
             {% else %}
             <td style="text-align:center;"><input type="checkbox" checked onclick="return false;"></td>
             <td> 
-                <a class="edit" title="Edit" style="pointer-events: none" href="{{url_for('editTrans',trans_num=row.trans_num,mac_code=row.mac_code)}}"><i class="fa-regular fa-pen-to-square"></i></a>
+                <a class="edit" title="Edit" style="pointer-events: none" href="{{url_for('views.editTrans',trans_num=row.trans_num,mac_code=row.mac_code)}}"><i class="fa-regular fa-pen-to-square"></i></a>
             </td>
             {% endif %}
         </tr>
         {% endfor %}
     </table><br>
 </div>
-{% include 'footer.html' %}
+    {% include 'footer.html' %}
+</div>
+
 </body>
 </html>

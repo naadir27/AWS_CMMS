@@ -1,19 +1,4 @@
 {% include 'navbar(signed).html' %}
-
-  <!-- Notifies the User -->
-  {% with messages = get_flashed_messages(with_categories=True) %}
-  {% if messages %}
-    <div class="container">
-      {% for category, message in messages %}
-        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-          {{ message }}
-          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-      {% endfor %}
-    </div>
-  {% endif %}
-  {% endwith %}
-
   <div class="bg-light rounded-3 mb-4 p-5">
     <table class="table table-striped">
         <tr>
@@ -38,7 +23,7 @@
 	    </tr>
         {% endfor %}
     </table>
+    {% include 'footer.html' %}
   </div>
-{% include 'footer.html' %}
 </body>
 </html>

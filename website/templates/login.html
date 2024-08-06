@@ -1,22 +1,6 @@
 {% include 'navbar.html' %} 
-<div class="bg-light">
-  <!-- Notifies the User -->
-  {% with messages = get_flashed_messages(with_categories=True) %}
-  {% if messages %}
-    <div class="container">
-      {% for category, message in messages %}
-        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-          {{ message }}
-          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-      {% endfor %}
-    </div>
-  {% endif %}
-  {% endwith %}
-
-	</div>
-	<div class="container-fluid py-5">
-		<h1 class="text-center fw-bold display-5">CMMS App</h1>
+  <div class="container-fluid rounded-3 mb-4 py-5">
+		<h1 class="text-center fw-bold display-5">LOGIN</h1>
 		<form id="form-insert" action="" method="POST">
 			
 			<label for="inputEmail" class="mb-2">Email address</label><br>
@@ -28,7 +12,6 @@
 			<button id="btnSignIn" class="btn btn-lg btn-primary btn-block" type="submit">Login</button>
 		</form>
 	</div>
-</div>     
 {% include 'footer.html' %}
 </body>
 </html>

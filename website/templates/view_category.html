@@ -1,18 +1,4 @@
 {% include 'navbar(signed).html' %}
-
-  {% with messages = get_flashed_messages(with_categories=True) %}
-  {% if messages %}
-    <div class="container">
-      {% for category, message in messages %}
-        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-          {{ message }}
-          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-      {% endfor %}
-    </div>
-  {% endif %}
-  {% endwith %}
-
   <div class="bg-light rounded-3 mb-4 p-5">
     <h2 class="display-7 fw-bold text-center mb-2">VIEW CATEGORY</h2><br>
     <table class="table table-striped">
@@ -31,9 +17,7 @@
         </tr>
         {% endfor %}
     </table>
+    {% include 'footer.html' %}
   </div>
-
-{% include 'footer.html' %}
-
 </body>
 </html>

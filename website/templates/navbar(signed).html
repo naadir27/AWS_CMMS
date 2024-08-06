@@ -11,6 +11,7 @@
     <link rel="shortcut icon"  type="image/x-icon" href="/static/images/favicon.ico">
 
     <!-- Stylesheet -->
+    <link rel="stylesheet" href="/static/css/signup.css">
     <!-- <link rel="stylesheet" href="/website/static/css/signup.css"> -->
 
     <!-- Bootstrap 5.3.0 CDN  -->
@@ -27,7 +28,7 @@
 <body>
   <!-- NavBar -->
   <div class="container">
-      <div class="header">            
+    <div class="header">            
       <nav class="d-flex flex-wrap justify-content-center py-3 mb-4 border-bottom">
       <a href="/dashBoard" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-dark text-decoration-none">
         <span class="fs-4">Computerized Maintenance Management System</span>
@@ -44,8 +45,23 @@
             <a href="/signup" class="nav-link {% if active_page == 'signup' %}active{% endif %}">Sign Up</a>
           </li>
           {% else %}
-            <!-- <a href="/signup" class="nav-link {% if active_page == 'signup' %}active{% endif %}">Sign Up</a> -->
+
           {% endif %}	
         </ul>                     
       </nav>
+    </div>
   </div>
+
+  <!-- Notifies the User -->
+  {% with messages = get_flashed_messages(with_categories=True) %}
+  {% if messages %}
+    <div class="container">
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+  {% endwith %}

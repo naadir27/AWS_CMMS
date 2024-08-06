@@ -34,25 +34,7 @@
       <button class="btn btn-lg btn-primary btn-block" type="submit">Insert</button>      
     </form>
   </div>
+  {% include 'footer.html' %}
 </div>
-{% include 'footer.html' %}
-
-<!-- <script>
-
-  $(document).ready($(function() {
-    $('#inputCategory, #inputLocation').change(function() {
-        var selectedCategory = $("#inputCategory").val();
-        var selectedLocation = $("#inputLocation").val();
-        console.log(selectedCategory,selectedLocation)
-        $.ajax({
-            data: { 
-                    category: selectedCategory,
-                    location: selectedLocation
-                  },
-        });
-    });
-  }));
-
-</script> -->
 </body>
 </html>
