@@ -90,4 +90,5 @@ def dashBoard():
 @login_required
 def logout():
     logout_user()
+    flash("User Successfully Logged Out", "success")
     return redirect(url_for('auth.login'))
