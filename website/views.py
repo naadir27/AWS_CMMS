@@ -1,4 +1,5 @@
-from flask import Blueprint, Response, render_template, flash, redirect, url_for, request 
+from flask import Blueprint, Response, render_template, flash, redirect, url_for, request
+from flask_login import login_user, login_required, logout_user, current_user, LoginManager,UserMixin
 from fpdf import FPDF 
 from . import db   # from __init__.py import db
 views = Blueprint('views', __name__)
@@ -9,13 +10,14 @@ def main():
     
     #This active_page will give the nav-link to check whether it home or not in HTML
     active_page = 'home'
-    #This is used in navbar to give the Title of the Website
+    #This is used to give the Title of the Website 
     title = "CMMS Application"
 
     return render_template('index.html', title = title, active_page = active_page)
 
 # Route for adding a machine
 @views.route('/machine')
+@login_required
 def macInsert():
     
     title = "Add Machine"
@@ -39,7 +41,7 @@ def macInsert():
 @views.route('/api/insert_mac', methods=['POST'])
 def insertMachine():
     try:
-        #Getting inputs from the 
+        #Getting inputs from the Form
         _mac_code = request.form.get('inputCode')
         _mac_name = request.form.get('inputName')
         _mac_desc = request.form.get('inputDescription')
@@ -77,6 +79,7 @@ def insertMachine():
 
 # Route for viewing the list of machines
 @views.route('/view_mac')
+@login_required
 def viewMachine():
 
     title = "View Machine"
@@ -93,6 +96,7 @@ def viewMachine():
 
 # Route for adding a location
 @views.route('/location', methods=['GET','POST'])
+@login_required
 def addLocation():
     
     title = "Add Location"
@@ -132,6 +136,7 @@ def addLocation():
 
 # Route for viewing the list of location
 @views.route('/view_loc')
+@login_required
 def viewLocation():
 
     title = "View Location"
@@ -147,6 +152,7 @@ def viewLocation():
 
 # Route for adding a category
 @views.route('/category', methods=['GET','POST'])
+@login_required
 def addCategory():
     
     title = "Add Category"
@@ -186,11 +192,10 @@ def addCategory():
 
 # Route for viewing the list of categories
 @views.route('/view_cat')
+@login_required
 def viewCategory():
         
     title = "View Category"
-    # Creating the cursor object for executing SQL queries with the connected MySQL database    
-    # Creating the cursor object with dictionary cursor
     con = db.connection.cursor()
 
     # Fetch data from mac_category
@@ -316,9 +321,9 @@ def editLocation(mac_loc_code):
 
     return render_template("edit_location.html", location = location, title = title)
 
-
 # Route for inserting a Maintenance Transaction
 @views.route("/maintenance", methods=['GET','POST'])
+@login_required
 def maintenance():
 
     title = "Add Maintenance"
@@ -349,6 +354,7 @@ def maintenance():
 
 #View Maintenance Route
 @views.route('/view_trans')
+@login_required
 def viewTrans():
     
     title = "View Maintenance"    
@@ -405,6 +411,7 @@ def editTrans(trans_num,mac_code):
 
 #Displaying the Total Transactions of a Machine
 @views.route("/report",methods=['GET','POST'])
+@login_required
 def report():
 
     title = "Report"
@@ -440,6 +447,7 @@ def report():
     return render_template("report.html",machine=machine, title=title)
 
 @views.route('/chart')
+@login_required
 def chart():
     title = "Data Visualization"
     cursor = db.connection.cursor()

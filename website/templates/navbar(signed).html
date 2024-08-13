@@ -36,16 +36,18 @@
         <ul class="nav nav-pills">
           <li class="nav-item">
             <a href="/dashBoard" class="nav-link">Home</a>
+          </li>          
+          {% if current_user.is_admin %}
+          <li class="nav-item">
+            <a href="/signup" class="nav-link">Sign Up</a>
           </li>
           <li class="nav-item">
             <a href="/logout" class="btn btn-outline-primary">Log Out</a>
           </li>
-          {% if current_user.is_admin %}
-          <li class="nav-item">
-            <a href="/signup" class="nav-link {% if active_page == 'signup' %}active{% endif %}">Sign Up</a>
-          </li>
           {% else %}
-
+          <li class="nav-item">
+            <a href="/logout" class="btn btn-outline-primary">Log Out</a>
+          </li>
           {% endif %}	
         </ul>                     
       </nav>

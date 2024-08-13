@@ -11,7 +11,7 @@
           var data = google.visualization.arrayToDataTable([
               ['Machine Name', 'Total Maintenance Hours', 'Repair Hours', 'Production Loss Hours'],
               {% for row in data %}
-              ['{{ row.mac_name }}', {{ row.total_break_hours }}, {{ row.repair_hours }}, {{ row.prod_loss_min/60 }}],
+              [{{ row.mac_name }}, {{ row.total_break_hours }}, {{ row.repair_hours }}, {{ row.prod_loss_min/60 }}],
               {% endfor %}
           ]);
 
@@ -41,7 +41,7 @@
 <body>
   <!-- Data is being Visualized -->
   <div class="rounded-3 mb-4 p-5">
-    <div id="chart_div"></div>
+    <div id="chart_div"></div><br>
     {% include 'footer.html' %}
   </div>
 

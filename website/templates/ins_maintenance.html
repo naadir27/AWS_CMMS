@@ -12,25 +12,25 @@
             {% endfor %}
         </select><br>
                     
-        <label for="start">Transaction Type: &emsp;</label><br>
+        <label for="start">Maintenance Type: &emsp;</label><br><br>
         <input type="radio" id="Preventive" name="main" id="PR" value="Preventive">
-        <label for="Preventive">Preventive</label><br>
+        <label for="Preventive">Preventive</label>&emsp;&emsp;
         <input type="radio" id="Breakdown" name="main" id="BR" value="Breakdown">
         <label for="Breakdown">Breakdown</label><br><br>
 
         <label for="Breakdown">Breakdown date:&nbsp;</label>
-        <input type="datetime-local" id="breakDate" name="breakDate" value="2023-04-01T06:30" min="2023-01-01T00:00" max="2024-12-31T00:00"><br><br>
+        <input type="datetime-local" id="breakDate" name="breakDate" value="2024-04-01T06:30" min="2022-01-01T00:00" max="2025-12-31T00:00"><br><br>
 
         <label for="start">Repair Start date:</label>
-        <input type="datetime-local" id="startDate" name="startDate" value="2023-04-01T08:30" min="2023-01-01T00:00" max="2024-12-31T00:00"><br><br>
+        <input type="datetime-local" id="startDate" name="startDate" value="2024-04-01T08:30" min="2022-01-01T00:00" max="2025-12-31T00:00"><br><br>
 
         <label for="end">Repair End date:&ensp;</label>
-        <input type="datetime-local" id="endDate" name="endDate" value="2023-04-01T11:30" min="2023-01-01T00:00" max="2024-12-31T00:00"><br><br>
+        <input type="datetime-local" id="endDate" name="endDate" value="2024-04-01T11:30" min="2023-01-01T00:00" max="2025-12-31T00:00"><br><br>
 
         <label for="prod">Production Loss Time: </label>
         <input type="number" name="productionTime" min="0" step="1" value="0" size="5">&nbsp;(min)<br><br>
 
-        <button class="btn btn-lg btn-primary btn-block" type="submit">Save Details</button>
+        <button class="btn btn-lg btn-primary btn-block" type="submit">Create Maintenance</button>
     </form>
     </div>
     {% include 'footer.html' %}
