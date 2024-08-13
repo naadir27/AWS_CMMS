@@ -1,0 +1,39 @@
+{% include 'navbar(signed).html' %}
+
+<div class="bg-light rounded-3 mb-4 p-5">
+    <div class="container-fluid py-5">
+        <h1 class="text-center fw-bold display-5">REGISTER</h1>
+
+        {% if current_user.is_admin %}
+            <!-- Admin content -->
+            <form id="form-insert" action="{{ url_for('auth.signup') }}" method="POST">
+                {{ form.hidden_tag() }}
+
+                <label for="inputName" class="mb-2">{{ form.name.label.text }}</label><br>
+                {{ form.name() }}<br>
+
+                <label for="inputEmail" class="mb-2">{{ form.email.label.text }}</label><br>
+                {{ form.email() }}<br>
+
+                <label for="inputPassword" class="mb-2">{{ form.password.label.text }}</label><br>
+                {{ form.password() }}<br>
+
+                <label for="confirmPassword" class="mb-2">{{ form.confirm_password.label.text }}</label><br>
+                {{ form.confirm_password() }}<br>
+                
+                <label for="inputLevel" class="mb-2">{{ form.level.label.text }}</label><br>
+                {{ form.level() }}<br>
+
+                {{ form.is_admin() }} {{ form.is_admin.label.text }}<br><br>
+
+                <div class="input-field">
+                    {{ form.submit() }}
+                </div>    
+            </form>
+        {% else %}
+            <!-- Content for non-admin users, if needed -->
+        {% endif %}
+    </div>
+    {% include 'footer.html' %}
+    </body>
+    </html>

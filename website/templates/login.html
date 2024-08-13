@@ -1,17 +1,42 @@
-{% include 'navbar.html' %} 
-  <div class="container-fluid rounded-3 mb-4 py-5">
-		<h1 class="text-center fw-bold display-5">LOGIN</h1>
-		<form id="form-insert" action="" method="POST">
-			
-			<label for="inputEmail" class="mb-2">Email address</label><br>
-			<input type="email" name="inputEmail" id="inputEmail" class="form-control" placeholder="Email address" required autofocus><br>
-			
-			<label for="inputPassword" class="mb-2">Password</label><br>
-			<input type="password" name="inputPassword" id="inputPassword" class="form-control" placeholder="Password" required><br>
+<!-- login.html -->
+{% include 'navbar.html' %}
 
-			<button id="btnSignIn" class="btn btn-lg btn-primary btn-block" type="submit">Login</button>
-		</form>
-	</div>
+<body>
+<div class="wrapper">    
+<div class="container main">
+    <div class="row">
+        <div class="col-md-6 side-image"></div>
+            <div class="col-md-6 right">
+                <div class="input-box">
+                    <div class="input-box">
+                        <header>LOGIN</header>
+
+                        <form action="{{ url_for('auth.login') }}" method="POST">
+                            {{ form.hidden_tag() }}
+
+                            <div class="input-field"><br>
+                                <label>{{ form.email.label.text }}</label><br>
+                                {{ form.email(size=32) }}<br>
+                            </div>
+                            <div class="input-field"><br>
+                                <label type = "password" for="inputPassword" class="mb-2">{{ form.password.label.text }}</label><br>
+                                {{ form.password(size=32) }}
+                            </div>
+                            <div class="signin">
+                                <span><a href="/forget">Forget Password?</a></span>
+                            </div><br>
+                            <!-- <a href="/forget">Forget Password?</a><br><br> -->
+                            <div class="input-field">
+                                {{ form.submit() }}
+                            </div> 
+                        </form>
+
+                    </div> 
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% include 'footer.html' %}
 </body>
 </html>
