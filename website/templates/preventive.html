@@ -1,0 +1,32 @@
+{% include 'navbar(signed).html' %}
+
+<div class="p-4 mb-4 bg-light rounded-3">
+    <div class="container-fluid py-5">
+        <h1 class="display-7 fw-bold text-center mb-2">PREVENTIVE MAINTENANCE</h1>
+            <!-- Add Maintenance Task Form -->
+            <form id="form-insert" method="POST" action="{{ url_for('views.add_preventive') }}">
+                <label for="inputMachine" class="sr-only mb-2">MACHINE</label>
+                <select class="form-control" id="inputMachine" name= "inputMachine">
+                    <option value="" selected="selected">Select a Machine</option>
+                    {% for i in machine %}
+                    <option value='{{i.mac_code}}'>{{i.mac_name}}</option>
+                    {% endfor %}
+                </select><br>
+                <div class="form-group">
+                    <label for="task_name">Task Name</label>
+                    <input type="text" name="task_name" class="form-control" required>
+                </div><br>
+                <div class="form-group">
+                    <label for="schedule_date">Scheduled Date</label>
+                    <input type="date" name="schedule_date" id="schedule_date" class="form-control" required>
+                </div><br>
+                <button type="submit" class="btn btn-primary">Add Task</button>
+            </form>
+    </div>
+</div>
+{% include 'footer.html' %}
+
+<script>
+    // Set the minimum date for the schedule_date input to today's date
+    document.getElementById('schedule_date').min = new Date().toISOString().split('T')[0];
+</script>

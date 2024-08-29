@@ -34,11 +34,12 @@
             <label for="prod">Production Loss Time: </label>
             <input type="number" name="productionTime" min="0" step="1" value="{{row.prod_loss_min}}" size="5">&nbsp;(min)<br><br>
 
-            {% if row.completed == 1 %}
-                <input type="checkbox" name="completed" checked> COMPLETED<br><br>
+            {% if current_user.is_admin %}
+                <input type="checkbox" name="completed" {% if row.completed == 1 %}checked{% endif %}> COMPLETED<br><br>
             {% else %}
-                <input type="checkbox" name="completed"> COMPLETED<br><br>
+                <input type="checkbox" name="completed" {% if row.completed == 1 %}checked{% endif %} disabled> COMPLETED<br><br>
             {% endif %}
+        
 
             <button class="btn btn-lg btn-primary btn-block" type="submit">Save Details</button>
         </form>
