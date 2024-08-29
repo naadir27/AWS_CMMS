@@ -1,5 +1,4 @@
 # Import necessary modules and classes
-import bcrypt # Import the bcrypt module for password hashing
 
 # Import UserMixin, a Flask-Login class that provides default implementations for user authentication methods
 from flask_login import UserMixin 
@@ -12,6 +11,7 @@ from wtforms.validators import DataRequired, Email, EqualTo, Length, Regexp # Im
 
 from . import db # Import the db object from the current package, which is used to interact with the database
 
+from . import bcrypt # Import the brcypt from the current package, which is used to hash the password
 
 """Creating User Class"""  
 # Define the User class that extends UserMixin for Flask-Login integration
@@ -71,20 +71,14 @@ class User(UserMixin):
         return None
 
     # Method to hash the user's password using bcrypt
-    def set_password(self, password):
-        """Hash the password using bcrypt."""
-        # Hash the provided password using bcrypt, and store the hashed password
-        # bcrypt.hashpw() requires the password to be in bytes, so we encode it using UTF-8
-        # bcrypt.gensalt() generates a random salt for the hashing process
-        self.password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
-        # The result is decoded back to a string and stored in the password attribute
+    """Hash the password using bcrypt."""
+    def set_password(self, password):      
+        self.password = bcrypt.generate_password_hash(password).decode('utf-8')
 
     # Method to verify the user's password against the stored hashed password
+    """Verify the password using bcrypt."""
     def check_password(self, password):
-        """Verify the password using bcrypt."""
-        # Compare the provided password (after encoding it to bytes) with the stored hashed password
-        # bcrypt.checkpw() returns True if the passwords match, otherwise False
-        return bcrypt.checkpw(password.encode('utf-8'), self.password.encode('utf-8'))
+        return bcrypt.check_password_hash(self.password, password)
 
     
 """ Validating the Signup Form """ 

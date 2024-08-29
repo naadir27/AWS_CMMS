@@ -81,8 +81,6 @@ def login():
         # If the form was not submitted or didn't pass validation, render the login template
         return render_template('login.html', form=form, title=title, active_page=active_page)
 
-
-
 # Define a route for the signup page with both GET and POST methods allowed
 @auth.route('/signup', methods=['GET', 'POST'])
 @admin_required  # Ensure that only admins can access the signup route
@@ -167,3 +165,10 @@ def logout():
     logout_user()  # Log out the current user and end their session
     flash("User Successfully Logged Out", "success")  # Flash a success message indicating the user has logged out
     return redirect(url_for('auth.login'))  # Redirect the user to the login page after logging out
+
+@auth.route('/forget')
+def forget():
+
+    title = "Forget Password"  # Set the title for the dashboard page
+    
+    return render_template('forgetpw.html', title=title)

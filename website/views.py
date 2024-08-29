@@ -2,6 +2,9 @@ from flask import Blueprint, Response, render_template, flash, redirect, url_for
 from flask_login import login_user, login_required, logout_user, current_user, LoginManager,UserMixin
 from fpdf import FPDF 
 from . import db   # from __init__.py import db
+from datetime import datetime, timedelta
+
+
 views = Blueprint('views', __name__)
 
 #CMMS Application FUNCTIONALITTIES
@@ -322,9 +325,9 @@ def editLocation(mac_loc_code):
     return render_template("edit_location.html", location = location, title = title)
 
 # Route for inserting a Maintenance Transaction
-@views.route("/maintenance", methods=['GET','POST'])
+@views.route("/add_break", methods=['GET','POST'])
 @login_required
-def maintenance():
+def add_break():
 
     title = "Add Maintenance"
     con = db.connection.cursor() 
@@ -351,6 +354,33 @@ def maintenance():
     machine = con.fetchall()
     
     return render_template("ins_maintenance.html", machine = machine, title = title)
+
+# @views.route('/add_preventive_maintenance_task', methods=['POST'])
+@views.route('/add_preventive', methods=['GET','POST'])
+@login_required
+def add_preventive():
+
+    title = "Add Preventive Maintenance"
+    con = db.connection.cursor()
+
+    if request.method == 'POST':
+        machine_id = request.form['machine_id']
+        task_name = request.form['task_name']
+        description = request.form['description']
+        schedule_date = request.form['schedule_date']
+        cursor = db.connection.cursor()
+
+        cursor.execute("INSERT INTO MaintenanceTasks (machine_id, task_name, description, schedule_date, status) VALUES (%s, %s, %s, %s, 'Pending')", (machine_id, task_name, description, schedule_date))
+        
+        db.connection.commit()
+        flash('Preventive Maintenance Task Added')
+        return redirect(url_for('views.viewTrans'))   
+
+    sql = "select * from mac_master"
+    con.execute(sql)
+    machine = con.fetchall()
+    
+    return render_template("preventive.html", machine = machine, title = title)
 
 #View Maintenance Route
 @views.route('/view_trans')

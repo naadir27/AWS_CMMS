@@ -2,9 +2,13 @@
 from flask import Flask  # The core class for initializing a Flask application
 from flask_mysqldb import MySQL  # Flask extension for connecting to a MySQL database
 from flask_login import LoginManager  # Flask extension for managing user sessions and handling authentication
+from flask_bcrypt import Bcrypt  # Flask extension for password hashing
 
 # Initialize the MySQL object, which will be used to interact with the MySQL database
 db = MySQL()
+
+# Intialize Bcrypt
+bcrypt = Bcrypt()
 
 # Define a function to create and configure the Flask application
 def create_app():
