@@ -1,0 +1,46 @@
+{% include 'navbar(signed).html' %}
+<!-- Insert Form -->
+<div class="p-4 mb-4 bg-light rounded-3">
+    <div class="container-fluid py-5">
+        <h1 class="display-7 fw-bold text-center mb-2">EDIT MAINTENANCE</h1>
+        <form id="form-insert" action="" method="POST">
+            
+            <label for="inputMachine" class="mb-2">MACHINE</label>
+            <select class="form-control" id="inputMachine" name= "inputMachine">
+                {% for i in machine %}
+                    {% if i.mac_code == row.mac_code %}
+                        <option value='{{i.mac_code}}' selected="selected">{{i.mac_name}}</option>
+                    {% else %}
+                        <option value='{{i.mac_code}}'>{{i.mac_name}}</option>
+                    {% endif %}
+                {% endfor %}
+            </select><br>
+                        
+            <label for="start">Maintenance Type: &emsp;</label><br><br>
+            <input type="radio" id="Preventive" name="main" value="Preventive" {% if row.trans_type == 'Preventive' %}checked{% endif %}>
+            <label for="Preventive">Preventive</label>&emsp;&emsp;
+
+            <input type="radio" id="Breakdown" name="main" value="Breakdown" {% if row.trans_type == 'Breakdown' %}checked{% endif %}>
+            <label for="Breakdown">Breakdown</label><br><br>
+
+            <label for="Breakdown">Breakdown date:&nbsp;</label>
+            <input type="datetime-local" id="breakDate" name="breakDate" value="{{row.trans_date}}" min="2023-01-01T00:00" max="2024-12-31T00:00"><br><br>
+
+            <label for="start">Repair Start date:</label>
+            <input type="datetime-local" id="startDate" name="startDate" value="{{row.start_date}}" min="2023-01-01T00:00" max="2024-12-31T00:00"><br><br>
+
+            <label for="end">Repair End date:&ensp;</label>
+            <input type="datetime-local" id="endDate" name="endDate" value="{{row.end_date}}" min="2023-01-01T00:00" max="2024-12-31T00:00"><br><br>
+
+            <label for="prod">Production Loss Time: </label>
+            <input type="number" name="productionTime" min="0" step="1" value="{{row.prod_loss_min}}" size="5">&nbsp;(min)<br><br>
+
+                <input type="checkbox" name="completed" {% if row.completed == 1 %}checked{% endif %}> COMPLETED<br><br>      
+
+            <button class="btn btn-lg btn-primary btn-block" type="submit">Save Details</button>
+        </form>
+    </div>
+</div>
+{% include 'footer.html' %}
+</body>
+</html>

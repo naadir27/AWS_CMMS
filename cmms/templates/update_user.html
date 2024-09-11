@@ -1,0 +1,38 @@
+{% include 'navbar(signed).html' %}
+<div class="bg-light rounded-3 mb-4 p-5">
+<div class="container-fluid py-5">
+    <h1 class="text-center fw-bold display-5">Update User</h1>
+    <form id="form-insert" method="POST" action="{{ url_for('auth_forms.update_user', user_id=session.user_id) }}">
+        {{ form.hidden_tag() }}
+
+        <label for="inputName" class="mb-2">{{ form.name.label.text }}</label><br>
+        {{ form.name() }}<br>
+
+        <label for="inputPassword" class="mb-2">{{ form.password.label.text }}</label><br>
+        {{ form.password() }}<br>
+
+        <label for="confirmPassword" class="mb-2">{{ form.confirm_password.label.text }}</label><br>
+        {{ form.confirm_password() }}<br>
+        <!-- For Password Validation -->
+        <div id="passwordHelpBlock" class="form-text">
+            <p>Password must contain:</p>
+            <ul>
+                <li id="length" class="invalid">At least 8 characters</li>
+                <li id="lowercase" class="invalid">At least one lowercase letter</li>
+                <li id="uppercase" class="invalid">At least one uppercase letter</li>
+                <li id="digit" class="invalid">At least one digit</li>
+                <li id="special" class="invalid">At least one special character (@$!%*?&)</li>
+                <li id="match" class="invalid">Passwords must match</li>
+            </ul>
+        </div>
+        
+        <div class="input-field">
+            {{ form.submit() }}
+        </div>    
+    </form>
+</div></div>
+
+<script src = "/static/js/check_pass.js"></script>
+
+{% include 'footer.html' %}
+

@@ -1,0 +1,24 @@
+{% include 'navbar(signed).html' %}
+<!-- Insert Category -->
+<div class="p-5 mb-4 bg-light rounded-3">
+  {% if session.user_level == 'MANAGER' %}
+  <div class="container-fluid py-5">
+    <h1 class="display-7 fw-bold text-center mb-2">ADD CATEGORY</h1>
+    <form id="form-insert" action="" method="POST">
+        
+        <label for="inputCode" class="mb-2">Category Code (Max. 2 Characters)</label>
+        <input type="text" name="inputCode" id="inputCode" class="form-control" placeholder="Category Code" maxlength="2" pattern="[A-Za-z0-9]{2}" title="Please enter exactly 2 alphanumeric characters." required autofocus /><br>
+        
+        <label for="inputName" class="mb-2">Category Name</label>
+        <input type="text" name="inputName" id="inputName" class="form-control" placeholder="Category Name" required autofocus /><br>
+
+        <button class="btn btn-lg btn-primary btn-block" type="submit">Add Category</button>      
+    </form>
+  </div>
+  {% else %}
+    <div class="container-fluid d-flex justify-content-center align-items-center min-vh-100">
+        <h1 class="text-center fw-bold display-5">YOU ARE NOT AUTHORIZED</h1>
+    </div>
+  {% endif %}
+</div>
+{% include 'footer.html' %}

@@ -1,0 +1,68 @@
+{% include 'navbar(signed).html' %}
+<div class="container">
+<div class="table-responsive">
+    <table class="table table-light table-striped">
+        <thead>
+            <tr>
+                <th scope="col">TRANSACTON NUM</th>
+                <th scope="col">MACHINE CODE</th>
+                <th scope="col">MACHINE NAME</th>
+                <th scope="col">TRANSACTON TYPE</th>
+                <th scope="col">TRANSACTON DATE</th>
+                <th scope="col">START DATE</th>
+                <th scope="col">END DATE</th>
+                <th scope="col">PRODUCTION TIME (MIN)</th>
+                <th scope="col">REPAIR HOURS</th>
+                <th scope="col">TOTAL MAINTENANCE HOURS</th>
+                <th scope="col">COMPLETED</th>
+                <th scope="col">ACTIONS</th>
+            </tr>
+        </thead>
+        {% for row in transactions %}
+        <tr>
+            <td>{{row.trans_num}}</td>
+            <td>{{row.mac_code}}</td>
+            <td>{{row.mac_name}}</td>
+            <td>{{row.trans_type}}</td>
+            <td>{{row.trans_date}}</td>
+            <td>{{row.start_date}}</td>
+            <td>{{row.end_date}}</td>
+            <td style="text-align:center;">{{row.prod_loss_min}}</td>
+            <td style="text-align:center;">{{row.repair_hours}}</td>
+            <td style="text-align:center;">{{row.total_break_hours}}</td>
+            
+            {% if session.user_level == "MANAGER" %}
+                {% if row.completed == 0 %}
+                    <td style="text-align:center;"><input type="checkbox" onclick="return false;"></td>
+                    <td>
+                        <a class="edit" title="Edit" href="{{ url_for('views.editTrans', trans_num=row.trans_num, mac_code=row.mac_code) }}">
+                            <i class="fa-regular fa-pen-to-square"></i>
+                        </a>
+                    </td>
+                {% else %}
+                    <td style="text-align:center;"><input type="checkbox" checked onclick="return false;"></td>
+                    <td>
+                        <span class="edit" title="Edit" style="pointer-events: none">
+                            <i class="fa-regular fa-pen-to-square"></i>
+                        </span>
+                    </td>
+                {% endif %}
+            {% else %}
+                {% if row.completed == 0 %}
+                    <td style="text-align:center;"><input type="checkbox" onclick="return false;"></td>
+                    <td><a class="edit" title="Edit" style="pointer-events: none" href=""><i class="fa-regular fa-pen-to-square"></i></a></td>  <!-- No edit button visible for non-managers -->
+                {% else %}
+                    <td style="text-align:center;"><input type="checkbox" checked onclick="return false;"></td>
+                    <td><a class="edit" title="Edit" style="pointer-events: none" href=""><i class="fa-regular fa-pen-to-square"></i></a></td>  <!-- No edit button visible for non-managers -->
+                {% endif %}
+            {% endif %}
+
+        </tr>
+        {% endfor %}
+    </table><br>
+</div>
+    {% include 'footer.html' %}
+</div>
+
+</body>
+</html>

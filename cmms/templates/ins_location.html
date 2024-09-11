@@ -1,0 +1,26 @@
+{% include 'navbar(signed).html' %}
+<!-- Insert Location -->
+<div class="p-5 mb-4 bg-light rounded-3">
+  {% if session.user_level == 'MANAGER' %}
+  <div class="container-fluid py-5">
+    <h1 class="display-7 fw-bold text-center mb-2">ADD LOCATION</h1>
+      <form id="form-insert" action="" method="POST">
+        
+        <label for="inputCode" class="mb-2">Location Code (Max. 4 Characters)</label>
+        <input type="code" name="inputCode" id="inputCode" class="form-control" placeholder="Location Code" maxlength="4" pattern="[A-Za-z0-9]{4}" title="Please enter exactly 4 alphanumeric characters." required autofocus /><br>
+        
+        <label for="inputName" class="mb-2">Location Name</label>
+        <input type="name" name="inputName" id="inputName" class="form-control" placeholder="Location Name" required autofocus /><br>
+
+        <button class="btn btn-lg btn-primary btn-block" type="submit">Add Location</button>      
+      </form>
+  </div>
+  {% else %}
+    <div class="container-fluid d-flex justify-content-center align-items-center min-vh-100">
+        <h1 class="text-center fw-bold display-5">YOU ARE NOT AUTHORIZED</h1>
+    </div>
+  {% endif %}
+
+</div>
+
+  {% include 'footer.html' %}
