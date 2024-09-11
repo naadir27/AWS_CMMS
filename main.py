@@ -1,5 +1,5 @@
 # Import the create_app function from the website module to initialize the Flask application
-from website import create_app
+from cmms import create_app
 
 # Initialize the Flask application using the create_app function
 app = create_app()

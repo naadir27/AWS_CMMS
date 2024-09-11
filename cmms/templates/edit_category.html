@@ -1,0 +1,21 @@
+{% include 'navbar(signed).html' %}
+<!-- Update Form -->
+<div class="p-5 mb-4 bg-light rounded-3">
+    <div class="container-fluid py-5">
+        <div class='btn btn-info' id="message" style="display:none; width:100%; margin-top:10px;">{{message}}</div>
+        <h1 class="display-7 text-center mb-2">Update Category</h1><br>
+        <form id="form-insert" action="" method="POST">
+            
+            <label for="inputCode" class="mb-2">Category Code</label>
+            <input type="text" name="inputCode" class="form-control" placeholder="Code" value="{{category.mac_cat_code}}"required autofocus disabled/><br>
+            
+            <label for="inputName" class="mb-2">Category Name</label>
+            <input type="text" name="inputName" class="form-control" placeholder="Category Name" value="{{category.mac_cat_name}}" required autofocus/><br>
+
+            <button class="btn btn-lg btn-primary btn-block" type="submit">UPDATE</button>
+        </form>
+    </div>
+</div>
+{% include 'footer.html' %}
+</body>
+</html>
