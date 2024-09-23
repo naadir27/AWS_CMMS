@@ -10,12 +10,47 @@
             <input type="text" name="inputCode" class="form-control" placeholder="Code" value="{{category.mac_cat_code}}"required autofocus disabled/><br>
             
             <label for="inputName" class="mb-2">Category Name</label>
-            <input type="text" name="inputName" class="form-control" placeholder="Category Name" value="{{category.mac_cat_name}}" required autofocus/><br>
+            <input type="text" id="inputName" name="inputName" class="form-control" placeholder="Category Name" value="{{category.mac_cat_name}}" required autofocus/><br>
 
             <button class="btn btn-lg btn-primary btn-block" type="submit">UPDATE</button>
         </form>
     </div>
 </div>
+
+
+<script>
+
+document.getElementById('form-insert').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const mac_cat_code = String("{{ category.mac_cat_code }}");
+    const inputName = document.getElementById('inputName').value;
+
+    // Get CSRF token from cookies
+    const csrfToken = document.cookie.split('; ').find(row => row.startsWith('csrf_access_token')).split('=')[1];
+
+    const response = await fetch(`/editCategory/${mac_cat_code}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': csrfToken,  // Include CSRF token in headers
+        },
+        body: JSON.stringify({ inputName }),
+        credentials: 'include'  // Include cookies (JWT and CSRF) in the request
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+        alert(data.message);
+        window.location.href = '/view_cat';
+    } else {
+        alert('Error: ' + data.message);
+    }
+});
+
+
+</script>
+
 {% include 'footer.html' %}
-</body>
-</html>
+

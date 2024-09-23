@@ -31,7 +31,8 @@
             <td style="text-align:center;">{{row.repair_hours}}</td>
             <td style="text-align:center;">{{row.total_break_hours}}</td>
             
-            {% if session.user_level == "MANAGER" %}
+            {% if user %}
+                {% if user['user_level'] == 'MANAGER' %}
                 {% if row.completed == 0 %}
                     <td style="text-align:center;"><input type="checkbox" onclick="return false;"></td>
                     <td>
@@ -47,6 +48,7 @@
                         </span>
                     </td>
                 {% endif %}
+            {% endif %}
             {% else %}
                 {% if row.completed == 0 %}
                     <td style="text-align:center;"><input type="checkbox" onclick="return false;"></td>

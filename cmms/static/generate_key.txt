@@ -1,1 +1,14 @@
 python -c 'import secrets; print(secrets.token_hex())'
+
+#Req - Should have the key.pem File 
+#Connect AWS from the Terminal from WSL
+ssh -i "CMMS_key.pem" ubuntu@ec2-18-191-242-4.us-east-2.compute.amazonaws.com:
+
+#Transfer a File (:test/ (Folder Name))
+scp -i "CMMS_key.pem" temp.txt ubuntu@ec2-18-191-242-4.us-east-2.compute.amazonaws.com:test/
+
+#Transfer a folder
+scp -i "CMMS_key.pem" -r templates ubuntu@ec2-18-191-242-4.us-east-2.compute.amazonaws.com:test/
+
+#gunicorn
+gunicorn -b 0.0.0.0:8000 main:app 

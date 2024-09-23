@@ -7,23 +7,72 @@
                 <input type="hidden" name="report_type" value="machine_data">
                 <button class="btn btn-lg btn-outline-secondary btn-block" type="submit">Machine Data Report</button>
             </form><br>
-            {% if session.user_level == 'MANAGER' %}
-                <form method="POST" action="">
-                    <input type="hidden" name="report_type" value="employee_data">
-                    <button class="btn btn-lg btn-outline-secondary btn-block" type="submit">Employee Data Report</button>
-                </form><br>
-            {% elif session.user_level == 'MANAGER' or session.user_level == 'OPERATOR' %}
-                <form method="POST" action="">
-                    <input type="hidden" name="report_type" value="maintenance_data">
-                    <button class="btn btn-lg btn-outline-secondary btn-block" type="submit">Maintenance Data Report</button>
-                </form><br>
-                <form method="POST" action="">
-                    <input type="hidden" name="report_type" value="summary_data">
-                    <button class="btn btn-lg btn-outline-secondary btn-block" type="submit">Machinewise Maintenance Summary Report</button>
-                </form><br>
-            {% else %}
+            {% if user %}
+                {% if user['user_level'] == 'MANAGER' %}
+            <form method="POST" action="">
+                <input type="hidden" name="report_type" value="employee_data">
+                <button class="btn btn-lg btn-outline-secondary btn-block" type="submit">Employee Data Report</button>
+            </form><br>
+                {% endif %}
             {% endif %}
+            <form method="POST" action="">
+                <input type="hidden" name="report_type" value="maintenance_data">
+                <button class="btn btn-lg btn-outline-secondary btn-block" type="submit">Maintenance Data Report</button>
+            </form><br>
+            <form method="POST" action="">
+                <input type="hidden" name="report_type" value="summary_data">
+                <button class="btn btn-lg btn-outline-secondary btn-block" type="submit">Machinewise Maintenance Summary Report</button>
+            </form><br>
         </div>
     </div>
 </div>
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Get all forms on the page
+        const forms = document.querySelectorAll('form');
+
+        forms.forEach(form => {
+            form.addEventListener('submit', function (event) {
+                event.preventDefault();  // Prevent default form submission
+
+                const formData = new FormData(form);
+                const reportType = formData.get('report_type');  // Get the report type
+
+                // Send the request to generate or download the report
+                fetch('/pdf', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.cookie.split('; ').find(row => row.startsWith('csrf_access_token')).split('=')[1],  // CSRF Token
+                    },
+                    body: formData,
+                    credentials: 'include'
+                })
+                .then(response => {
+                    if (response.ok) {
+                        return response.blob();  // Get the PDF file as a blob
+                    } else {
+                        throw new Error('Failed to download report.');
+                    }
+                })
+                .then(blob => {
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.style.display = 'none';
+                    a.href = url;
+                    a.download = reportType + '_report.pdf';  // Dynamic filename
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Failed to download report: ' + error.message);
+                });
+            });
+        });
+    });
+</script>
+
 {% include 'footer.html' %}

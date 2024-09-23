@@ -1,13 +1,12 @@
 from mysql.connector import connect, cursor
 from flask import Blueprint, Response, jsonify, render_template, flash, redirect, session, url_for, request, current_app
 from fpdf import FPDF 
-from flask_jwt_extended import decode_token, get_current_user, get_jwt_identity, jwt_required
-from .forms import session_jwt_required
+from flask_jwt_extended import get_jwt_identity, jwt_required, verify_jwt_in_request
 
 views = Blueprint('views', __name__)
 
 """ All the webiste pages have been Routed here"""
-#CMMS APPLIVATION HOME PAGE
+#CMMS APPLICATION HOME PAGE
 @views.route('/', methods=['GET'])
 def main():
     
@@ -15,27 +14,20 @@ def main():
     active_page = 'home'
     #This is used to give the Title of the Website 
     title = "CMMS Application"
+    
+    try:
+        verify_jwt_in_request()  # This will raise an error if the token is not valid
+        return redirect(url_for('auth_forms.dashBoard'))  # Redirect to dashboard if token is valid
+    except:
+        pass  # Let the user proceed to login if no valid token is found
 
-    token = session.get('jwt_token')
-        
-    if token:
-        try:
-            decoded_token = decode_token(token)
-            session['current_user'] = decoded_token['sub']
-            flash('Welcome back!', 'info')
-            return redirect(url_for('auth_forms.dashBoard'))
-        except Exception as e:
-            flash('Invalid or expired token. Please log in again.', 'danger')
-            session.pop('jwt_token', None)
-            return redirect(url_for('auth_forms.login'))
-    else:
-        return render_template('index.html', title = title, active_page = active_page)
-
+    return render_template('index.html', title = title, active_page = active_page)
 
 # Route for adding a machine
 @views.route('/machine')
-@session_jwt_required
+@jwt_required()
 def macInsert():
+    user = get_jwt_identity()
     title = "Add Machine"
     connect = None
     cursor = None
@@ -67,22 +59,23 @@ def macInsert():
         if connect:
             connect.close()
 
-    return render_template('ins_machine.html', category=category, location=location, title=title)
+    return render_template('ins_machine.html', category=category, location=location, title=title, user=user)
 
 
 # Route for adding a machine in the database
 @views.route('/api/insert_mac', methods=['POST'])
-@session_jwt_required
+@jwt_required()
 def insertMachine():
     connect = None
     cursor = None
     try:
+        data = request.get_json()
         # Getting inputs from the Form
-        _mac_code = request.form.get('inputCode')
-        _mac_name = request.form.get('inputName')
-        _mac_desc = request.form.get('inputDescription')
-        _mac_cat_code = request.form.get('inputCategory')
-        _mac_loc_code = request.form.get('inputLocation')
+        _mac_code = data.get('inputCode')
+        _mac_name = data.get('inputName')
+        _mac_desc = data.get('inputDescription')
+        _mac_cat_code = data.get('inputCategory')
+        _mac_loc_code = data.get('inputLocation')
 
         # Validate the received values
         if _mac_code and _mac_name and _mac_desc and _mac_cat_code and _mac_loc_code:
@@ -100,16 +93,19 @@ def insertMachine():
             if len(data) == 0:
                 connect.commit()  # Commit the transaction
                 flash("Created Machine Successfully", "success")
-                return redirect(url_for('views.viewMachine'))  # Redirect to the viewMachine route
+                response = jsonify({'message': 'Created a Machine Successfully'})
+                return response
             else:
                 flash("Machine Exists", "danger")
-                return redirect(url_for('views.viewMachine')) 
+                response = jsonify({'message': 'Created a Machine Successfully'})
+                return response
 
     except Exception as e:
         # Log the exception details for debugging
         print(f"Error: {str(e)}")
         flash("Error: Unable to process the request", "danger")
-        return redirect(url_for('views.viewMachine')) 
+        response = jsonify({'message': 'Error: Unable to process the request'})
+        return response
 
     finally:
         # Close the cursor and connection to free resources
@@ -120,8 +116,9 @@ def insertMachine():
 
 # Route for viewing the machines in the database
 @views.route('/view_mac')
-@session_jwt_required
+@jwt_required()
 def viewMachine():
+    user = get_jwt_identity()
     title = "View Machine"
     connect = None
     cursor = None
@@ -148,11 +145,12 @@ def viewMachine():
         if connect:
             connect.close()
 
-    return render_template("view_machine.html", machine=machine, title=title)
+    return render_template("view_machine.html", machine=machine, title=title,user=user)
 
 @views.route("/editMachine/<string:mac_code>", methods=['GET', 'POST'])
-@session_jwt_required
+@jwt_required()
 def editMachine(mac_code):
+    user = get_jwt_identity()
     title = "Edit Machine"
     connect = None
     cursor = None
@@ -164,10 +162,11 @@ def editMachine(mac_code):
         
         if request.method == 'POST':
             # Retrieve form data
-            mac_name = request.form.get('inputName')
-            mac_desc = request.form.get('inputDescription')
-            mac_cat = request.form.get('inputCategory')
-            mac_loc = request.form.get('inputLocation')
+            data = request.get_json()
+            mac_name = data.get('inputName')
+            mac_desc = data.get('inputDescription')
+            mac_cat = data.get('inputCategory')
+            mac_loc = data.get('inputLocation')
             
             # Update machine details
             sql = """
@@ -179,7 +178,9 @@ def editMachine(mac_code):
             connect.commit()  # Commit the transaction
             
             flash("Machine Updated Successfully", "success")
-            return redirect(url_for('views.viewMachine'))
+            response = jsonify({'message': 'Machine Updated Successfully'})
+            return response
+            # return redirect(url_for('views.viewMachine'))
         
         # Fetch data for the form
         sql = "SELECT * FROM mac_master WHERE mac_code = %s"
@@ -198,7 +199,8 @@ def editMachine(mac_code):
     except Exception as e:
         # Handle any exceptions and provide feedback
         flash(f"Error: {str(e)}", "danger")
-        return redirect(url_for('views.viewMachine'))
+        response = jsonify({'message': 'Error: {str(e)}'})
+        return response
     
     finally:
         # Ensure both cursor and connection are closed
@@ -207,11 +209,11 @@ def editMachine(mac_code):
         if connect:
             connect.close()
     
-    return render_template("edit_machine.html", machine=machine, category=category, location=location, title=title)
+    return render_template("edit_machine.html", machine=machine, category=category, location=location, title=title,user=user)
 
 
 @views.route("/deleteMachine/<string:mac_code>", methods=['GET', 'POST'])
-@session_jwt_required
+@jwt_required()
 def deleteMachine(mac_code):
     connect = None
     cursor = None
@@ -245,16 +247,18 @@ def deleteMachine(mac_code):
 
 # Route for adding a location
 @views.route('/location', methods=['GET', 'POST'])
-@session_jwt_required
+@jwt_required()
 def addLocation():
+    user = get_jwt_identity()
     title = "Add Location"
     connect = None
     cursor = None
 
     if request.method == 'POST':
         try:
-            _mac_loc_code = request.form.get('inputCode').upper()
-            _mac_loc_name = request.form.get('inputName').upper()
+            data = request.get_json()
+            _mac_loc_code = data.get('inputCode').upper()
+            _mac_loc_name = data.get('inputName').upper()
 
             # Validate the received values
             if _mac_loc_code and _mac_loc_name:
@@ -271,16 +275,19 @@ def addLocation():
 
                 if len(data) == 0:
                     connect.commit()  # Commit the transaction
-                    flash("Created Location Successfully", "success")
-                    return redirect(url_for('views.viewLocation'))
+                    flash("Created a Location Successfully", "success")
+                    response = jsonify({'message': 'Created a Location Successfully'})
+                    return response
                 else:
                     flash("Location Exists", "danger")
-                    return redirect(url_for('views.viewLocation'))
+                    response = jsonify({'message': 'Location Exists'})
+                    return response
 
         except Exception as e:
             # Handle exceptions and provide feedback
             flash(f"Error: {str(e)}", "danger")
-            return redirect(url_for('views.viewLocation'))
+            response = jsonify({'message': 'Error: {str(e)}'})
+            return response
         
         finally:
             # Ensure both cursor and connection are closed
@@ -289,12 +296,13 @@ def addLocation():
             if connect:
                 connect.close()
 
-    return render_template('ins_location.html', title=title)
+    return render_template('ins_location.html', title=title,user=user)
 
 # Route for viewing the list of location
 @views.route('/view_loc')
-@session_jwt_required
+@jwt_required()
 def viewLocation():
+    user = get_jwt_identity()
     title = "View Location"
     connect = None
     cursor = None
@@ -321,12 +329,13 @@ def viewLocation():
         if connect:
             connect.close()
 
-    return render_template("view_location.html", location=location, title=title)
+    return render_template("view_location.html", location=location, title=title,user=user)
 
 # Route for updating a Location
 @views.route("/editLocation/<string:mac_loc_code>", methods=['GET', 'POST'])
-@session_jwt_required
+@jwt_required()
 def editLocation(mac_loc_code):
+    user = get_jwt_identity()
     title = "Edit Location"
     connect = None
     cursor = None
@@ -338,7 +347,8 @@ def editLocation(mac_loc_code):
         cursor = connect.cursor(dictionary=True)
 
         if request.method == 'POST':
-            mac_loc_name = request.form.get('inputName').upper()
+            data = request.get_json()
+            mac_loc_name = data.get('inputName').upper()
 
             # Update the location
             sql = "UPDATE mac_location SET mac_loc_name=%s WHERE mac_loc_code=%s"
@@ -346,7 +356,8 @@ def editLocation(mac_loc_code):
             connect.commit()
 
             flash("Location Updated Successfully", "success")
-            return redirect(url_for('views.viewLocation'))
+            response = jsonify({'message': 'Location Updated Successfully'})
+            return response
 
         # Fetch the location details for GET request
         sql = "SELECT * FROM mac_location WHERE mac_loc_code=%s"
@@ -355,7 +366,8 @@ def editLocation(mac_loc_code):
 
     except Exception as e:
         flash(f"An error occurred: {str(e)}", "danger")
-        return redirect(url_for('views.viewLocation'))
+        response = jsonify({'message': 'Error'})
+        return response
 
     finally:
         # Ensure cursor and connection are closed
@@ -364,20 +376,22 @@ def editLocation(mac_loc_code):
         if connect:
             connect.close()
 
-    return render_template("edit_location.html", location=location, title=title)
+    return render_template("edit_location.html", location=location, title=title,user=user)
 
 # Route for adding a category
 @views.route('/category', methods=['GET', 'POST'])
-@session_jwt_required
+@jwt_required()
 def addCategory():
+    user = get_jwt_identity()
     title = "Add Category"
     connect = None
     cursor = None
     
     if request.method == 'POST':
         try:
-            _mac_cat_code = request.form.get('inputCode').upper()
-            _mac_cat_name = request.form.get('inputName').upper()
+            data = request.get_json()
+            _mac_cat_code = data.get('inputCode').upper()
+            _mac_cat_name = data.get('inputName').upper()
 
             # Validate the received values
             if _mac_cat_code and _mac_cat_name:
@@ -394,16 +408,19 @@ def addCategory():
 
                 if len(data) == 0:
                     connect.commit()  # Commit the transaction
-                    flash("Created Category Successfully", "success")
-                    return redirect(url_for('views.viewCategory'))  # Adjust to the actual route name
+                    flash("Created a Category Successfully", "success")
+                    response = jsonify({'message': 'Created a Category Successfully'})
+                    return response
                 else:
                     flash("Category Exists", "danger")
-                    return redirect(url_for('views.viewCategory'))  # Adjust to the actual route name
-
+                    response = jsonify({'message': 'Category Exists'})
+                    return response
+                
         except Exception as e:
             # Handle exceptions and display an error message
             flash(f"Error: {str(e)}", "danger")
-            return redirect(url_for('views.viewCategory'))  # Adjust to the actual route name
+            response = jsonify({'message': 'Error'})
+            return response
         
         finally:
             # Ensure both cursor and connection are closed
@@ -412,13 +429,13 @@ def addCategory():
             if connect:
                 connect.close()
 
-    return render_template('ins_category.html', title=title)
+    return render_template('ins_category.html', title=title,user=user)
 
 # Route for viewing the list of categories
 @views.route('/view_cat')
-@session_jwt_required
+@jwt_required()
 def viewCategory():
-        
+    user = get_jwt_identity()
     title = "View Category"
     connect = None
     cursor = None
@@ -445,12 +462,13 @@ def viewCategory():
         if connect:
             connect.close()
 
-    return render_template("view_category.html", category=category, title=title)
+    return render_template("view_category.html", category=category, title=title,user=user)
 
 # Route for updating a Category
 @views.route("/editCategory/<string:mac_cat_code>", methods=['GET', 'POST'])
-@session_jwt_required
+@jwt_required()
 def editCategory(mac_cat_code):
+    user = get_jwt_identity()
     title = "Edit Category"
     connect = None
     cursor = None
@@ -462,7 +480,8 @@ def editCategory(mac_cat_code):
         cursor = connect.cursor(dictionary=True)
 
         if request.method == 'POST':
-            mac_cat_name = request.form.get('inputName').upper()
+            data = request.get_json()
+            mac_cat_name = data.get('inputName').upper()
 
             # Update the category
             sql = "UPDATE mac_category SET mac_cat_name=%s WHERE mac_cat_code=%s"
@@ -470,7 +489,9 @@ def editCategory(mac_cat_code):
             connect.commit()
 
             flash("Category Updated Successfully", "success")
-            return redirect(url_for('views.viewCategory'))
+            response = jsonify({'message': 'Category Updated Successfully'})
+            return response
+            # return redirect(url_for('views.viewCategory'))
 
         # Fetch the category details for GET request
         sql = "SELECT * FROM mac_category WHERE mac_cat_code=%s"
@@ -488,12 +509,13 @@ def editCategory(mac_cat_code):
         if connect:
             connect.close()
 
-    return render_template("edit_category.html", category=category, title=title)
+    return render_template("edit_category.html", category=category, title=title,user=user)
 
 # Route for inserting a Maintenance Transaction
 @views.route("/add_break", methods=['GET', 'POST'])
-@session_jwt_required
+@jwt_required()
 def add_break():
+    user = get_jwt_identity()
     title = "Add Maintenance"
     connect = None
     cursor = None
@@ -506,12 +528,13 @@ def add_break():
 
         if request.method == 'POST':
             # Fetch form data
-            mac_code = request.form.get('inputMachine')
-            trans_type = request.form.get('main')
-            break_date = request.form.get('breakDate')
-            start_date = request.form.get('startDate')
-            end_date = request.form.get('endDate')
-            production_time = request.form.get('productionTime')
+            data = request.get_json();
+            mac_code = data.get('inputMachine')
+            trans_type = data.get('main')
+            break_date = data.get('breakDate')
+            start_date = data.get('startDate')
+            end_date = data.get('endDate')
+            production_time = data.get('productionTime')
 
             # Insert new maintenance record
             sql = """INSERT INTO mac_trans(mac_code, trans_type, trans_date, start_date, 
@@ -522,7 +545,9 @@ def add_break():
 
             # Flash success message and redirect
             flash("Added Machine Maintenance", "success")
-            return redirect(url_for('views.viewTrans'))
+            response = jsonify({'message': 'Added Machine Maintenance'})
+            return response
+            # return redirect(url_for('views.viewTrans'))
 
         # Fetch machines for GET request
         sql = "SELECT * FROM mac_master"
@@ -531,7 +556,8 @@ def add_break():
 
     except Exception as e:
         flash(f"An error occurred: {str(e)}", "danger")
-        return redirect(url_for('views.viewTrans'))
+        response = jsonify({'message': 'Error Occured'})
+        return response
 
     finally:
         # Ensure cursor and connection are closed
@@ -540,12 +566,13 @@ def add_break():
         if connect:
             connect.close()
 
-    return render_template("ins_maintenance.html", machine=machine, title=title)
+    return render_template("ins_maintenance.html", machine=machine, title=title ,user=user)
 
 #Route for Preventive Maintenance
 @views.route('/add_preventive', methods=['GET', 'POST'])
-@session_jwt_required
+@jwt_required()
 def add_preventive():
+    user = get_jwt_identity()
     title = "Add Preventive Maintenance"
     connect = None
     cursor = None
@@ -590,12 +617,13 @@ def add_preventive():
         if connect:
             connect.close()
 
-    return render_template("ins_preventive.html", machine=machine, title=title)
+    return render_template("ins_preventive.html", machine=machine, title=title ,user=user)
 
 #View Machine Transaction Route
 @views.route('/view_trans')
-@session_jwt_required
+@jwt_required()
 def viewTrans():
+    user = get_jwt_identity()
     title = "View Maintenance"
     connect = None
     cursor = None
@@ -623,12 +651,13 @@ def viewTrans():
         if connect:
             connect.close()
 
-    return render_template("view_trans.html", transactions=transactions, title=title)
+    return render_template("view_trans.html", transactions=transactions, title=title ,user=user)
 
 #Update Machine Transaction
 @views.route("/editTrans/<string:trans_num>/<string:mac_code>", methods=['GET', 'POST'])
-@session_jwt_required
+@jwt_required()
 def editTrans(trans_num, mac_code):
+    user = get_jwt_identity()
     title = "Edit Maintenance"
     connect = None
     cursor = None
@@ -640,13 +669,14 @@ def editTrans(trans_num, mac_code):
 
         if request.method == 'POST':
             # Retrieve form data
-            mac_code = request.form.get('inputMachine')
-            trans_type = request.form.get('main')
-            break_date = request.form.get('breakDate')
-            start_date = request.form.get('startDate')
-            end_date = request.form.get('endDate')
-            production_time = request.form.get('productionTime')
-            completed = 1 if request.form.get('completed') == 'on' else 0
+            data = request.get_json()
+            mac_code = data.get('inputMachine')
+            trans_type = data.get('main')
+            break_date = data.get('breakDate')
+            start_date = data.get('startDate')
+            end_date = data.get('endDate')
+            production_time = data.get('productionTime')
+            completed = 1 if data.get('completed') == 'on' else 0
             
             # Update query
             sql = """
@@ -658,7 +688,8 @@ def editTrans(trans_num, mac_code):
             connect.commit()
 
             flash("Machine Transaction Updated Successfully", "success")
-            return redirect(url_for('views.viewTrans'))
+            response = jsonify({'message': 'Machine Transaction Updated Successfully'})
+            return response
         
         # Fetch transaction details for the form
         sql = "SELECT * FROM mac_trans WHERE trans_num = %s"
@@ -682,13 +713,13 @@ def editTrans(trans_num, mac_code):
         if connect:
             connect.close()
 
-    return render_template("edit_trans.html", row=transactions, machine=machine, title=title)
+    return render_template("edit_trans.html", row=transactions, machine=machine, title=title ,user=user)
 
 #Displaying the Total Transactions of a Machine in a Report
 @views.route("/report", methods=['GET', 'POST'])
-@session_jwt_required
+@jwt_required()
 def report():
-    title = "Report"
+    user = get_jwt_identity()
     connect = None
     cursor = None
     transactions = []
@@ -699,12 +730,11 @@ def report():
         cursor = connect.cursor(dictionary=True)
         
         if request.method == 'POST':
-            # Retrieve form data
-            mac_code = request.form.get('inputMachine')
-            start_date = request.form.get('startDate')
-            end_date = request.form.get('endDate')
+            data = request.get_json()
+            mac_code = data.get('inputMachine')
+            start_date = data.get('startDate')
+            end_date = data.get('endDate')
             
-            # Query for fetching transactions based on the filter criteria
             query = """
                 SELECT * FROM mac_trans_view 
                 WHERE mac_code = %s 
@@ -713,30 +743,32 @@ def report():
             """
             cursor.execute(query, [mac_code, start_date, end_date])
             transactions = cursor.fetchall()
+
+            # Return the transactions as JSON
+            return jsonify({"transactions": transactions})
         
-        # Fetch data from mac_master for the dropdown
+        # Fetch data for machine dropdown
         sql1 = "SELECT * FROM mac_master"
         cursor.execute(sql1)
         machine = cursor.fetchall()
-
+        
     except Exception as e:
-        # Handle any exceptions and display an error message
-        flash(f"An error occurred: {str(e)}", "danger")
-        transactions = []
+        return jsonify({"message": f"An error occurred: {str(e)}"}), 500
 
     finally:
-        # Ensure the cursor and connection are closed
         if cursor:
             cursor.close()
         if connect:
             connect.close()
 
-    return render_template("report.html", machine=machine, transactions=transactions, title=title)
+    return render_template("report.html", machine=machine, transactions=[], title="Report" ,user=user)
+
 
 #Route for Data Visualization
 @views.route('/chart')
-@session_jwt_required
+@jwt_required()
 def chart():
+    user = get_jwt_identity()
     title = "Data Visualization"
     connect = None
     cursor = None
@@ -771,12 +803,13 @@ def chart():
         if connect:
             connect.close()
 
-    return render_template('reportchart.html', data=data, title=title)
+    return render_template('reportchart.html', data=data, title=title ,user=user)
 
 #Route to download the report as PDF
 @views.route('/pdf', methods=['GET', 'POST'])
-@session_jwt_required
+@jwt_required()
 def download_report():
+    user = get_jwt_identity()
     title = "Generate PDF"
     connection = None
     cursor = None
@@ -817,7 +850,6 @@ def download_report():
                 flash('Invalid report type selected.', 'danger')
                 return redirect(url_for('views.download_report'))
 
-            # flash(f'{report_type.replace("_", " ").capitalize()} report generated successfully!', 'success')
             return response
 
         except Exception as e:
@@ -830,52 +862,28 @@ def download_report():
             if connection:
                 connection.close()
 
-    return render_template('reportpdf.html', title=title)
+    return render_template('reportpdf.html', title=title ,user=user)
 
 # Helper functions for PDF generation
 
 def generate_machine_data_pdf(data):
-    pdf = FPDF()
+    pdf = FPDF(orientation='L')  # Set orientation to landscape
     pdf.add_page()
 
     page_width = pdf.w - 2 * pdf.l_margin
+    page_height = pdf.h - 2 * pdf.t_margin  # Not used directly but can be useful for layout
 
-    pdf.set_font('Times', 'B', 14.0)
-    pdf.cell(page_width, 0.0, 'Machine Data', align='C')
-    pdf.ln(10)
-
-    col_width = page_width / 3
-    pdf.set_font('Times', 'B', 12.0)
-    pdf.cell(col_width, 2 * pdf.font_size, 'Machine Name', border=1)
-    pdf.cell(col_width, 2 * pdf.font_size, 'Category', border=1)
-    pdf.cell(col_width, 2 * pdf.font_size, 'Location', border=1)
-    pdf.ln()
-
-    pdf.set_font('Courier', '', 10)
-    for row in data:
-        pdf.cell(col_width, pdf.font_size, row['mac_name'], border=1)
-        pdf.cell(col_width, pdf.font_size, row['mac_cat_name'], border=1)
-        pdf.cell(col_width, pdf.font_size, row['mac_loc_name'], border=1)
-        pdf.ln()
-
-    pdf.ln(10)
-    pdf.set_font('Times', '', 10.0)
-    pdf.cell(page_width, 0.0, '- End of report -', align='C')
-
-    return Response(pdf.output(dest='S').encode('latin-1'), mimetype='application/pdf',
-                    headers={'Content-Disposition': 'attachment;filename=machine_report.pdf'})
-
-def generate_employee_data_pdf(data):
-    pdf = FPDF()
-    pdf.add_page()
-
-    page_width = pdf.w - 2 * pdf.l_margin
-
+    # Set font and add title
     pdf.set_font('Times', 'B', 14.0)
     pdf.cell(page_width, 0.0, 'Employee Data', align='C')
     pdf.ln(10)
 
-    col_width = page_width / 4
+    # Adjust column width based on max length of employee ID
+    default_col_width = 50
+    max_id_length = max(len(row['user_id']) for row in data)
+    col_width = max(default_col_width, (page_width - 3) / 4)
+
+    # Set font for header
     pdf.set_font('Times', 'B', 12.0)
     pdf.cell(col_width, 2 * pdf.font_size, 'Employee ID', border=1)
     pdf.cell(col_width, 2 * pdf.font_size, 'Employee Name', border=1)
@@ -883,6 +891,7 @@ def generate_employee_data_pdf(data):
     pdf.cell(col_width, 2 * pdf.font_size, 'Authority', border=1)
     pdf.ln()
 
+    # Set font for data rows
     pdf.set_font('Courier', '', 10)
     for row in data:
         pdf.cell(col_width, pdf.font_size, str(row['user_id']), border=1)
@@ -894,6 +903,47 @@ def generate_employee_data_pdf(data):
     pdf.ln(10)
     pdf.set_font('Times', '', 10.0)
     pdf.cell(page_width, 0.0, '- End of report -', align='C')
+
+    return Response(pdf.output(dest='S').encode('latin-1'), mimetype='application/pdf',
+                    headers={'Content-Disposition': 'attachment;filename=machine_report.pdf'})
+
+def generate_employee_data_pdf(data):
+    pdf = FPDF(orientation='L')
+    pdf.add_page()
+
+    page_width = pdf.w - 2 * pdf.l_margin
+
+    # Set font and add title
+    pdf.set_font('Times', 'B', 14.0)
+    pdf.cell(page_width, 0.0, 'Employee Data', align='C')
+    pdf.ln(10)
+
+    # Adjust column width based on max length of employee ID
+    default_col_width = 50
+    max_id_length = 36  # Since Employee ID has 36 characters
+    col_width = max(default_col_width, (page_width - 3 * default_col_width) / 1)
+
+    # Set font for header
+    pdf.set_font('Times', 'B', 12.0)
+    pdf.cell(col_width, 2 * pdf.font_size, 'Employee ID', border=1)
+    pdf.cell(default_col_width, 2 * pdf.font_size, 'Employee Name', border=1)
+    pdf.cell(default_col_width, 2 * pdf.font_size, 'Employee Email-ID', border=1)
+    pdf.cell(default_col_width, 2 * pdf.font_size, 'Authority', border=1)
+    pdf.ln()
+
+    # Set font for data rows
+    pdf.set_font('Courier', '', 10)
+    for row in data:
+        pdf.cell(col_width, pdf.font_size, str(row['user_id']), border=1)
+        pdf.cell(default_col_width, pdf.font_size, row['user_name'], border=1)
+        pdf.cell(default_col_width, pdf.font_size, row['user_email'], border=1)
+        pdf.cell(default_col_width, pdf.font_size, row['user_level'], border=1)
+        pdf.ln()
+
+    pdf.ln(10)
+    pdf.set_font('Times', '', 10.0)
+    pdf.cell(page_width, 0.0, '- End of report -', align='C')
+
 
     return Response(pdf.output(dest='S').encode('latin-1'), mimetype='application/pdf',
                     headers={'Content-Disposition': 'attachment;filename=employee_report.pdf'})

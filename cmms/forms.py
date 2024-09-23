@@ -1,48 +1,121 @@
-from flask import Blueprint, render_template, request, flash, redirect, session, url_for, current_app,jsonify
-from .models import RegistrationForm, LoginForm, UpdateUserForm
-from flask_jwt_extended import create_access_token, decode_token, get_jwt_identity, jwt_required
-from functools import wraps
 import uuid
+from flask import Blueprint, Flask, abort, flash, jsonify, redirect, request, render_template, make_response, current_app, session, url_for
+from flask_jwt_extended import JWTManager, create_access_token, create_refresh_token, decode_token, get_jwt, set_access_cookies, set_refresh_cookies, unset_jwt_cookies, jwt_required, get_jwt_identity, verify_jwt_in_request
+from datetime import datetime, timedelta, timezone
 from . import bcrypt
 
 # Define the blueprint
 auth_forms = Blueprint('auth_forms', __name__)
 
-def session_jwt_required(fn):
-    @wraps(fn)
-    def wrapper(*args, **kwargs):
-        token = session.get('jwt_token')
-        if not token:
-            flash('Please log in to access this page.', 'danger')
-            return redirect(url_for('auth_forms.login'))
-        try:
-            decoded_token = decode_token(token)
-            session['current_user'] = decoded_token['sub']['id']
-        except Exception as e:
-            flash('Invalid or expired token. Please log in again.', 'danger')
-            session.pop('jwt_token', None)
-            return redirect(url_for('auth_forms.login'))
-        return fn(*args, **kwargs)
-    return wrapper
+@auth_forms.route('/login', methods= ['GET','POST'])
+def login():
 
-# Define a route for the Register page with both GET and POST methods allowed
-@auth_forms.route('/register', methods=['GET', 'POST'])
-@session_jwt_required
-def register():
+    try:
+        verify_jwt_in_request()  # This will raise an error if the token is not valid
+        return redirect(url_for('auth_forms.dashBoard'))  # Redirect to dashboard if token is valid
+    except:
+        pass  # Let the user proceed to login if no valid token is found
+
     if request.method == 'GET':
-        active_page = 'register'
-        title = "Register User"
-        form = RegistrationForm()  # Create an instance of the RegistrationForm
-        return render_template('sign.html', title=title, active_page=active_page, form=form)
-    
-    form = RegistrationForm()
+        active_page = 'login'
+        title = "CMMS Login"
+        return render_template('login.html', title=title, active_page=active_page)
 
-    if form.validate_on_submit():
+    if request.method == 'POST':
+        data = request.get_json()
+        if not data or not 'email' in data or not 'password' in data:
+            return jsonify({'message': 'Email and password are required'}), 400
+
+        connect = current_app.get_db_connection()
+        cursor = connect.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM users WHERE user_email = %s", (data['email'],))
+        user = cursor.fetchone()
+
+        if not user or not bcrypt.check_password_hash(user['user_password'], data['password']):
+            return jsonify({'message': 'Invalid credentials'}), 401
+        
+        response = jsonify({'message': 'Login Successful '})
+
+        user_identity = {
+            'user_id': user['user_id'],
+            'user_name': user['user_name'],
+            'user_level': user['user_level']
+        }
+
+
+        # After Authenticating the user, Token Generates
+        # Generate tokens with specified expiration time
+        access_token = create_access_token(identity=user_identity, expires_delta=timedelta(minutes=15))
+        # refresh_token = create_refresh_token(identity=user_identity)
+
+
+        # Sets the token in the cookies
+        set_access_cookies(response, access_token, max_age=60*15)
+        # set_refresh_cookies(response, refresh_token)
+
+        
+        flash('Login successful! Redirecting...', 'success')
+        return response, 200
+
+# Route for refreshing token
+# @auth_forms.route('/refresh', methods=['POST'])
+# @jwt_required(refresh=True)
+# def refresh_token():
+#     current_user = get_jwt_identity()
+#     new_access_token = create_access_token(identity=current_user, fresh=False)
+#     response = jsonify(access_token=new_access_token)
+#     set_access_cookies(response, new_access_token)
+#     return response
+
+# @auth_forms.after_request
+# def refresh_expiring_jwts(response):
+#     try:
+#         exp_timestamp = get_jwt()["exp"]
+#         now = datetime.now(timezone.utc)
+#         target_timestamp = datetime.timestamp(now + timedelta(minutes=30))
+#         if target_timestamp > exp_timestamp:
+#             access_token = create_access_token(identity=get_jwt_identity())
+#             set_access_cookies(response, access_token)
+#         return response
+#     except (RuntimeError, KeyError):
+#         # Case where there is not a valid JWT. Just return the original response
+#         return response
+
+@auth_forms.route('/dashBoard', methods=['GET'])
+@jwt_required()
+def dashBoard():
+    user = get_jwt_identity()
+    return render_template('dashBoard.html', title="Dashboard", user = user)
+
+
+@auth_forms.route('/signup', methods=['GET', 'POST'])
+@jwt_required()
+def signup():
+    user = get_jwt_identity()
+    connect = None
+    cursor = None
+
+    if request.method == 'GET':
+        active_page = 'signup'
+        title = "Sign Up"
+        return render_template('sign.html', title=title, active_page=active_page , user= user)
+
+    if request.method == 'POST':
+        data = request.get_json()
         user_id = str(uuid.uuid4())
-        name = form.name.data
-        email = form.email.data
-        password = form.password.data
-        level = form.level.data
+        name = data.get('inputName')
+        email = data.get('inputEmail')
+        password = data.get('inputPassword')
+        c_password = data.get('confirmPassword')
+        level = data.get('inputLevel')
+
+        # Check if password is empty
+        if not password:
+            return jsonify({'message': 'Password cannot be empty'}), 400
+        
+        if not password == c_password:
+            response = jsonify({'message': 'Passwords do not match'})
+            return response, 401
 
         try:
             # Hash the password using bcrypt
@@ -50,6 +123,10 @@ def register():
 
             # Establish a connection to the database and insert the new user's details
             connect = current_app.get_db_connection()
+
+            if connect is None:
+                raise Exception('Database connection failed')
+
             cursor = connect.cursor(dictionary=True)
 
             # Check if the email already exists in the database
@@ -57,124 +134,42 @@ def register():
             existing_user = cursor.fetchone()
 
             if existing_user:
-                flash('Email already registered. Please log in.', 'danger')
-                return redirect(url_for('auth_forms.register'))
+                flash('Email already registered. Please enter a new email.', 'danger')
+                return jsonify({"message": "Email already registered. Please enter a new email"}), 401
 
             # Insert the form data into the database  
             insert_query = "INSERT INTO users (user_id, user_name, user_email, user_password, user_level) VALUES (%s, %s, %s, %s, %s)"
-            cursor.execute(insert_query, (user_id, name, email, hashed_password, level))    
+            cursor.execute(insert_query, (user_id, name, email, hashed_password, level))
             connect.commit()  # Commit the transaction to save changes to the database
-            
+
             flash('User registered successfully! Log out and log in with the new user', 'success')
-            return redirect(url_for('auth_forms.dashBoard'))
+            return jsonify({"message": "User registered successfully! Log out and log in with the new user"}), 200
 
         except Exception as e:
-            connect.rollback()  # Rollback any changes if an error occurs
+            if connect:
+                connect.rollback()  # Rollback only if connection exists
             flash('User registration failed! Please try again.', 'danger')
-            print(f"Error: {e}")  # Log the error for debugging purposes
-        
-        finally:
-            cursor.close()  # Close the cursor
-            connect.close()  # Close the database connection
-
-    # If the form fails validation or registration fails, re-render the register form with error messages
-    return render_template('sign.html', title=title, active_page=active_page, form=form)
-
-# Define a route for the login form
-@auth_forms.route('/login', methods=['GET', 'POST'])
-def login():
-
-    active_page = 'login'
-    title = "CMMS Login"
-
-    form = LoginForm()
-    
-    if form.validate_on_submit():
-        email = form.email.data
-        password = form.password.data
-        
-        # Get the database connection
-        connect = current_app.get_db_connection()
-        cursor = connect.cursor(dictionary=True)
-
-        try:
-            
-            cursor.execute("SELECT * FROM users WHERE user_email = %s", (email,))
-            user = cursor.fetchone()
-
-            # Verify the hashed password using Bcrypt
-            if user and bcrypt.check_password_hash(user['user_password'], password):
-                access_token = create_access_token(identity={
-                    'id': user['user_id'],
-                    'name': user['user_name'],
-                    'level': user['user_level']
-                })
-
-                flash(f'Login successful! Token: {access_token}', 'info')
-                session['jwt_token'] = access_token
-                
-                # Decode the JWT token to extract user_name, user_level and user_id
-                decoded_token = decode_token(access_token)
-                
-                # Extract user details from the decoded token
-                user_name = decoded_token['sub']['name']  
-                user_level = decoded_token['sub']['level']
-                user_id = decoded_token['sub']['id']
-
-                # Stores the user details in the session
-                session['user_name'] = user_name  
-                session['user_level'] = user_level
-                session['user_id'] = user_id
-
-                # return jsonify(access_token=access_token)
-                # flash(f'Login successful! Redirecting... {user_name}', 'success')
-                flash('Login successful! Redirecting...', 'success')
-                return redirect(url_for('auth_forms.redirect_user'))
-            else:
-                flash('Invalid credentials. Please try again.', 'danger')
-
-        except Exception as e:
-            flash(f"An error occurred: {str(e)}", 'danger')
+            return jsonify({"message": f"Error: {str(e)}"}), 500
 
         finally:
-            # Close the connection
-            cursor.close()
-            connect.close()
-        
-        return redirect(url_for('auth_forms.login'))
+            if cursor:
+                cursor.close()  # Close the cursor only if it was created
+            if connect:
+                connect.close()  # Close the database connection only if it was established
 
-    return render_template('login.html', form=form, title=title, active_page=active_page)
+    return render_template('sign.html', title="Sign Up", active_page='signup', user=user)
+
 
 @auth_forms.route('/redirect_user')
-@session_jwt_required # Custom decorator that verifies JWT in session
+@jwt_required() # Custom decorator that verifies JWT in session
 def redirect_user():
-    return render_template('redirect.html')
-
-@auth_forms.route('/dashBoard')
-@session_jwt_required  
-def dashBoard():
-    title="Dashboard"
-    user_name = session.get('user_name')
-    user_level = session.get('user_level')
-    user_id = session.get('user_id')
-    return render_template('dashboard.html', title=title, user_name=user_name, user_level=user_level, user_id=user_id)
-
-@auth_forms.route('/logout', methods=['GET'])
-def logout():
-    """
-    Route to handle user logout.
-    The user must be logged in to access this page.
-    """
-    # session.pop('jwt_token', None)
-    session.clear()
-    flash('You have been logged out.', 'info')
-    return redirect(url_for('auth_forms.login'))
+    return render_template('redirect.html', title="Redirecting...")
 
 @auth_forms.route('/update_user/<string:user_id>', methods=['GET', 'POST'])
-@session_jwt_required
+@jwt_required()
 def update_user(user_id):
+    user = get_jwt_identity()
     title = "Edit Profile"
-    form = UpdateUserForm()
 
     # Connect to the database
     connect = current_app.get_db_connection()
@@ -186,15 +181,24 @@ def update_user(user_id):
         user = cursor.fetchone()
 
         if user:
-            # Pre-fill the form with current user details
-            form.name.data = user['user_name']
+            # Pass the user's current name to the template
+            name = user['user_name']
         else:
             flash('User not found!', 'danger')
             return redirect(url_for('views.dashBoard'))
 
-    if form.validate_on_submit():
-        name = form.name.data
-        password = form.password.data
+    if request.method == 'POST':
+        data = request.get_json()
+        name = data.get('inputName')
+        password = data.get('inputPassword')
+        c_password = data.get('confirmPassword')
+
+        if not name:
+            return jsonify({'message': 'Name is required'}), 400
+        
+        if password or c_password:  # Check if either password field is filled
+            if not password == c_password:
+                return jsonify({'message': 'Passwords do not match'}), 400
 
         try:
             # Update user profile in the database
@@ -216,58 +220,55 @@ def update_user(user_id):
 
             connect.commit()
 
-        
             # Fetch user_level after update
-            cursor.execute("SELECT user_level, user_email FROM users WHERE user_id = %s", (user_id,))
-            user_level_result = cursor.fetchone()
-            user_level = user_level_result['user_level'] if user_level_result else None
+            cursor.execute("SELECT * FROM users WHERE user_id = %s", (user_id,))
+            user = cursor.fetchone()
 
-            # Regenerate the JWT token with updated user details
-            updated_user = {
-                "id": user_id,
-                "name": name,
-                "level": user_level
+            # user_level = user_level_result['user_level'] if user_level_result else None
+
+            user_identity = {
+                'user_id': user['user_id'],
+                'user_name': user['user_name'],
+                'user_level': user['user_level']
             }
-            new_token = create_access_token(identity=updated_user)
 
-            # Store the updated token in session
-            session['jwt_token'] = new_token
-            flash(f'Login successful! Token: {new_token}', 'info')
+            response = jsonify({'message': 'Updated successfully'})
+
+            #Creates new token
+            new_access_token = create_access_token(identity=user_identity, expires_delta=timedelta(minutes=15))
             
-            # Decode the JWT token to extract user_name, user_level and user_id
-            decoded_token = decode_token(new_token)
+            # Updates the token cookie
+            set_access_cookies(response, new_access_token, max_age=60*15)
             
-            # Extract user details from the decoded token
-            user_name = decoded_token['sub']['name']  
-            user_level = decoded_token['sub']['level']
-            user_id = decoded_token['sub']['id']
-
-            # Stores the user details in the session
-            session['user_name'] = user_name  
-            session['user_level'] = user_level
-            session['user_id'] = user_id
-
             flash('User Profile Updated and Token Regenerated!', 'success')
-            return redirect(url_for('auth_forms.dashBoard'))
+            
+            return response
+
 
         except Exception as e:
             connect.rollback()
             flash(f"An error occurred: {str(e)}", 'danger')
+            response = jsonify({'message': 'Error: {str(e)}'})
+            return response
 
     cursor.close()
     connect.close()
 
-    return render_template('update_user.html', form=form, user_id=user_id, title=title)
+    return render_template('update_user.html', user_id=user_id, name=name, title=title, user=user)
 
-@auth_forms.route('/userHome', methods=['GET'])
-@jwt_required()
-def userHome():
-    current_user_id = get_jwt_identity()
-    return jsonify(username=current_user_id), 200
+# blacklisted_tokens = set()
 
-@auth_forms.route('/forget')
-def forget():
+# def add_to_blacklist(jti):
+#     blacklisted_tokens.add(jti)
 
-    title = "Forget Password"  # Set the title for the dashboard page
-    
-    return render_template('forgetpw.html', title=title)
+# def is_token_blacklisted(jti):
+#     return jti in blacklisted_tokens
+
+@auth_forms.route('/logout', methods=['POST'])
+def logout():
+    # jti = get_jwt()['jti']  # Unique identifier for the JWT token
+    # add_to_blacklist(jti)   # Blacklist the token
+    response = jsonify({'message': 'Logout successful'})
+    unset_jwt_cookies(response)
+    flash('Logout successful!', 'info')
+    return response

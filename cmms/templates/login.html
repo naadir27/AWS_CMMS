@@ -3,35 +3,31 @@
 
 <body>
 <div class="wrapper">    
-<div class="container main">
-    <div class="row">
-        <div class="col-md-6 side-image"></div>
+    <div class="container main">
+        <div class="row">
+            <div class="col-md-6 side-image"></div>
             <div class="col-md-6 right">
                 <div class="input-box">
-                    <div class="input-box">
-                        <header>LOGIN</header>
-                        <form action=" {{url_for('auth_forms.login')}}" method="POST">
-                            {{ form.hidden_tag() }}
-                        
-                            <div class="input-field"><br>
-                                <label>{{ form.email.label.text }}</label><br>
-                                {{ form.email(size=32) }}<br>
-                            </div>
-                            <div class="input-field"><br>
-                                <label>{{ form.password.label.text }}</label><br>
-                                {{ form.password(size=32) }}
-                            </div><br>
-                            <div class="input-field">
-                                {{ form.submit() }}
-                            </div> 
-                        </form>
-                    </div> 
-                </div>
+                    <header>LOGIN</header>
+                    <form id="login-form">
+                        <div class="input-field">
+                            <label for="email">Email</label><br><br>
+                            <input type="text" id="email" class="input" placeholder="Enter your email" required><br>
+                        </div>
+                        <div class="input-field">
+                            <label for="password">Password</label><br><br>
+                            <input type="password" id="pass" class="input" placeholder="Enter your password" required minlength="8" maxlength="32">
+                        </div><br>
+                        <div class="input-field">
+                            <button type="submit" class="submit">Login</button>
+                        </div>
+                    </form>
+                </div> 
             </div>
         </div>
     </div>
 </div>
 
-
-
 {% include 'footer.html' %}
+
+<script src="/static/js/login.js"></script>

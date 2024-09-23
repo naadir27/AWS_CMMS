@@ -8,10 +8,10 @@
         <form id="form-insert" action="" method="POST">
           
           <label for="inputName" class="mb-2">Machine Name</label>
-          <input type="text" name="inputName" class="form-control" placeholder="Machine Name" value="{{machine.mac_name}}"required autofocus/><br>
+          <input type="text" id="inputName" name="inputName" class="form-control" placeholder="Machine Name" value="{{machine.mac_name}}"required autofocus/><br>
           
           <label for="inputDescription" class="mb-2">Machine Description</label>
-          <input type="text" name="inputDescription" class="form-control" placeholder="Machine Description" value="{{machine.mac_desc}}" required autofocus/><br>
+          <input type="text" id="inputDescription" name="inputDescription" class="form-control" placeholder="Machine Description" value="{{machine.mac_desc}}" required autofocus/><br>
 
           <label for="inputCategory" class="mb-2">Machine Category</label>
           <select class="form-control" id="inputCategory" name= "inputCategory">
@@ -38,5 +38,46 @@
         </form>
       </div>
     </div>
+
+    <script>
+      document.getElementById('form-insert').addEventListener('submit', async (e) => {
+        e.preventDefault();
+    
+        // Retrieve form data
+        const mac_code = String("{{ machine.mac_code }}");
+        const formData = new FormData(e.target);
+        const data = {};
+        formData.forEach((value, key) => {
+            data[key] = value;
+        });
+    
+        // Get CSRF token from cookies
+        const csrfToken = document.cookie.split('; ').find(row => row.startsWith('csrf_access_token')).split('=')[1];
+    
+        // Define the route
+        const route = `/editMachine/${mac_code}`;  // Replace with your specific route
+    
+        const response = await fetch(route, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': csrfToken,  // Include CSRF token in headers
+          },
+          body: JSON.stringify(data),
+          credentials: 'include'  // Include cookies (JWT and CSRF) in the request
+        });
+    
+
+        const hello = await response.json();
+
+        if (response.ok) {
+            alert(hello.message);
+            window.location.href = '/view_mac';
+        } else {
+            alert('Error: ' + hello.message);
+        }
+        });
+    </script>
+    
 
 {% include 'footer.html' %}

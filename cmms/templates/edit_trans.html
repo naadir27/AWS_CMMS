@@ -33,7 +33,7 @@
             <input type="datetime-local" id="endDate" name="endDate" value="{{row.end_date}}" min="2023-01-01T00:00" max="2024-12-31T00:00"><br><br>
 
             <label for="prod">Production Loss Time: </label>
-            <input type="number" name="productionTime" min="0" step="1" value="{{row.prod_loss_min}}" size="5">&nbsp;(min)<br><br>
+            <input type="number" id="productionTime" name="productionTime" min="0" step="1" value="{{row.prod_loss_min}}" size="5">&nbsp;(min)<br><br>
 
                 <input type="checkbox" name="completed" {% if row.completed == 1 %}checked{% endif %}> COMPLETED<br><br>      
 
@@ -41,6 +41,45 @@
         </form>
     </div>
 </div>
+
+<script>
+    document.getElementById('form-insert').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+        const trans_num = '{{ row.trans_num }}';  
+        const mac_code = '{{ row.mac_code }}';   
+
+        // Retrieve form data
+        const formData = new FormData(e.target);
+        const data = {};
+        formData.forEach((value, key) => {
+            data[key] = value;
+        });
+  
+        // Get CSRF token from cookies
+        const csrfToken = document.cookie.split('; ').find(row => row.startsWith('csrf_access_token')).split('=')[1];
+
+        const route = `/editTrans/${trans_num}/${mac_code}`;  
+  
+        const response = await fetch(route, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken,  // Include CSRF token in headers
+            },
+            body: JSON.stringify(data),
+            credentials: 'include'  // Include cookies (JWT and CSRF) in the request
+        });
+
+        const hello = await response.json();
+
+        if (response.ok) {
+            alert(hello.message);
+            window.location.href = '/view_trans';
+        } else {
+            alert('Error: ' + hello.message);
+        }
+        });
+  </script>
+
 {% include 'footer.html' %}
-</body>
-</html>

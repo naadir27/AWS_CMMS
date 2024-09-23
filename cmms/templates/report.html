@@ -3,10 +3,10 @@
     <div class="container-fluid py-5">
         <form id="form-insert" action="/report" method="POST">
             <label for="inputMachine" class="sr-only mb-2">MACHINE</label>
-            <select class="form-control" id="inputMachine" name= "inputMachine">
-                <option value="" selected="selected">Select a Machine</option>
+            <select class="form-control" id="inputMachine" name="inputMachine">
+                <option value="" selected disabled>Select a Machine</option>
                 {% for i in machine %}
-                <option value='{{i.mac_code}}'>{{i.mac_code}} -> {{i.mac_name}}</option>
+                <option value="{{ i.mac_code }}">{{ i.mac_code }} -> {{ i.mac_name }}</option>
                 {% endfor %}
             </select>
             <br>
@@ -18,10 +18,10 @@
             <label for="endDate">Transaction Date To:&emsp;&nbsp;</label>
             <input type="date" id="endDate" name="endDate"><br><br>
             <button class="btn btn-lg btn-outline-info btn-block" type="submit">Search</button>
-        </form><br>
-        
-        {% if transactions %}
-        <div class="table-responsive">
+        </form>
+        <br>
+
+        <div class="table-responsive" id="transaction-table" style="display:none;">
             <table class="table table-dark table-striped">
                 <thead>
                     <tr>
@@ -38,32 +38,15 @@
                         <th scope="col">COMPLETED</th>
                     </tr>
                 </thead>
-                {% for row in transactions %}
-                <tr>
-                    <td>{{row.trans_num}}</td>
-                    <td>{{row.mac_code}}</td>
-                    <td>{{row.mac_name}}</td>
-                    <td>{{row.trans_type}}</td>
-                    <td>{{row.trans_date}}</td>
-                    <td>{{row.start_date}}</td>
-                    <td>{{row.end_date}}</td>
-                    <td style="text-align:center;">{{row.prod_loss_min}}</td>
-                    <td style="text-align:center;">{{row.repair_hours}}</td>
-                    <td style="text-align:center;">{{row.total_break_hours}}</td>
-                    {% if row.completed == 0 %}
-                        <td style="text-align:center;"><input type="checkbox" onclick="return false;"></td>
-                    {% else %}
-                        <td style="text-align:center;"><input type="checkbox" checked onclick="return false;"></td>
-                    {% endif %}
-                </tr>
-                {% endfor %}
+                <tbody id="transaction-rows">
+                </tbody>
             </table>
         </div>
-    {% endif %}
     </div>
 </div>
 {% include 'footer.html' %}
 </body>
+
 <script>
     const startDateField = document.getElementById('startDate');
     const endDateField = document.getElementById('endDate');
@@ -76,5 +59,72 @@
             endDateField.value = endDate;
         }
     });
+
+    document.getElementById('form-insert').addEventListener('submit', async (e) => {
+        e.preventDefault();
+    
+        const formData = new FormData(e.target);
+        const data = {};
+        formData.forEach((value, key) => {
+            data[key] = value;
+        });
+    
+        // Get CSRF token from cookies
+        const csrfToken = document.cookie.split('; ').find(row => row.startsWith('csrf_access_token')).split('=')[1];
+    
+        const route = `/report`;
+    
+        const response = await fetch(route, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken,
+            },
+            body: JSON.stringify(data),
+            credentials: 'include',
+        });
+    
+        const result = await response.json();
+
+        if (response.ok) {
+            updateTransactionTable(result.transactions);
+        } else {
+            alert('Error: ' + result.message);
+        }
+    });
+
+    function updateTransactionTable(transactions) {
+        const table = document.getElementById('transaction-table');
+        const tbody = document.getElementById('transaction-rows');
+        tbody.innerHTML = ''; // Clear the table before adding new rows
+
+        if (transactions.length === 0) {
+            table.style.display = 'none';
+            alert('No transactions found.');
+            return;
+        }
+
+        transactions.forEach(row => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${row.trans_num}</td>
+                <td>${row.mac_code}</td>
+                <td>${row.mac_name}</td>
+                <td>${row.trans_type}</td>
+                <td>${row.trans_date}</td>
+                <td>${row.start_date}</td>
+                <td>${row.end_date}</td>
+                <td style="text-align:center;">${row.prod_loss_min}</td>
+                <td style="text-align:center;">${row.repair_hours}</td>
+                <td style="text-align:center;">${row.total_break_hours}</td>
+                <td style="text-align:center;">
+                    <input type="checkbox" ${row.completed ? 'checked' : ''} onclick="return false;">
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        table.style.display = 'block';
+    }
 </script>
 </html>

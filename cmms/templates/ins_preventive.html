@@ -7,7 +7,7 @@
             <form id="form-insert" method="POST" action="{{ url_for('views.add_preventive') }}">
                 <label for="inputMachine" class="sr-only mb-2">MACHINE</label>
                 <select class="form-control" id="inputMachine" name= "inputMachine">
-                    <option value="" selected="selected">Select a Machine</option>
+                    <option value="" selected disabled>Select a Machine</option>
                     {% for i in machine %}
                     <option value='{{i.mac_code}}'>{{i.mac_name}}</option>
                     {% endfor %}
@@ -29,4 +29,40 @@
 <script>
     // Set the minimum date for the schedule_date input to today's date
     document.getElementById('schedule_date').min = new Date().toISOString().split('T')[0];
+
+    document.getElementById('form-insert').addEventListener('submit', async (e) => {
+        e.preventDefault();
+    
+        const formData = new FormData(e.target);
+        const data = {};
+        formData.forEach((value, key) => {
+            data[key] = value;
+        });
+    
+        // Get CSRF token from cookies
+        const csrfToken = document.cookie.split('; ').find(row => row.startsWith('csrf_access_token')).split('=')[1];
+    
+        // Define the route
+        const route = `/add_break`;  // Replace with your specific route
+    
+        const response = await fetch(route, {
+            method: 'POST',
+            headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': csrfToken,  // Include CSRF token in headers
+            },
+            body: JSON.stringify(data),
+            credentials: 'include'  // Include cookies (JWT and CSRF) in the request
+        });
+    
+
+        const hello = await response.json();
+
+        if (response.ok) {
+            alert(hello.message);
+            window.location.href = '/view_trans';
+        } else {
+            alert('Error: ' + hello.message);
+        }
+        });
 </script>

@@ -1,6 +1,6 @@
-document.addEventListener("DOMContentLoaded", function() {
-    const passwordInput = document.getElementById('inputPassword');
-    const confirmPasswordInput = document.getElementById('confirmPassword');
+    const inputPassword = document.getElementById('inputPassword');
+    const confirmPassword = document.getElementById('confirmPassword');
+    
     const lengthCriteria = document.getElementById('length');
     const lowercaseCriteria = document.getElementById('lowercase');
     const uppercaseCriteria = document.getElementById('uppercase');
@@ -8,65 +8,67 @@ document.addEventListener("DOMContentLoaded", function() {
     const specialCriteria = document.getElementById('special');
     const matchCriteria = document.getElementById('match');
 
+    inputPassword.addEventListener('input', validatePassword);
+    confirmPassword.addEventListener('input', validatePasswordMatch);
+
     function validatePassword() {
-        const password = passwordInput.value;
-        const confirmPassword = confirmPasswordInput.value;
-
-        // Check the length
+        const password = inputPassword.value;
+        
+        // Length
         if (password.length >= 8) {
-            lengthCriteria.classList.remove('invalid');
             lengthCriteria.classList.add('valid');
+            lengthCriteria.classList.remove('invalid');
         } else {
-            lengthCriteria.classList.remove('valid');
             lengthCriteria.classList.add('invalid');
+            lengthCriteria.classList.remove('valid');
         }
 
-        // Check for lowercase letter
+        // Lowercase letter
         if (/[a-z]/.test(password)) {
-            lowercaseCriteria.classList.remove('invalid');
             lowercaseCriteria.classList.add('valid');
+            lowercaseCriteria.classList.remove('invalid');
         } else {
-            lowercaseCriteria.classList.remove('valid');
             lowercaseCriteria.classList.add('invalid');
+            lowercaseCriteria.classList.remove('valid');
         }
 
-        // Check for uppercase letter
+        // Uppercase letter
         if (/[A-Z]/.test(password)) {
-            uppercaseCriteria.classList.remove('invalid');
             uppercaseCriteria.classList.add('valid');
+            uppercaseCriteria.classList.remove('invalid');
         } else {
-            uppercaseCriteria.classList.remove('valid');
             uppercaseCriteria.classList.add('invalid');
+            uppercaseCriteria.classList.remove('valid');
         }
 
-        // Check for digit
+        // Digit
         if (/\d/.test(password)) {
-            digitCriteria.classList.remove('invalid');
             digitCriteria.classList.add('valid');
+            digitCriteria.classList.remove('invalid');
         } else {
-            digitCriteria.classList.remove('valid');
             digitCriteria.classList.add('invalid');
+            digitCriteria.classList.remove('valid');
         }
 
-        // Check for special character
-        if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
-            specialCriteria.classList.remove('invalid');
+        // Special character
+        if (/[!@#$%^&*]/.test(password)) {
             specialCriteria.classList.add('valid');
+            specialCriteria.classList.remove('invalid');
         } else {
-            specialCriteria.classList.remove('valid');
             specialCriteria.classList.add('invalid');
+            specialCriteria.classList.remove('valid');
         }
 
         // Check if passwords match
-        if (password === confirmPassword) {
-            matchCriteria.classList.remove('invalid');
-            matchCriteria.classList.add('valid');
-        } else {
-            matchCriteria.classList.remove('valid');
-            matchCriteria.classList.add('invalid');
-        }
+        validatePasswordMatch();
     }
 
-    passwordInput.addEventListener('input', validatePassword);
-    confirmPasswordInput.addEventListener('input', validatePassword);
-});
+    function validatePasswordMatch() {
+        if (inputPassword.value === confirmPassword.value && inputPassword.value !== '') {
+            matchCriteria.classList.add('valid');
+            matchCriteria.classList.remove('invalid');
+        } else {
+            matchCriteria.classList.add('invalid');
+            matchCriteria.classList.remove('valid');
+        }
+    }

@@ -1,24 +1,66 @@
 {% include 'navbar(signed).html' %}
 <!-- Insert Category -->
 <div class="p-5 mb-4 bg-light rounded-3">
-  {% if session.user_level == 'MANAGER' %}
-  <div class="container-fluid py-5">
-    <h1 class="display-7 fw-bold text-center mb-2">ADD CATEGORY</h1>
-    <form id="form-insert" action="" method="POST">
-        
-        <label for="inputCode" class="mb-2">Category Code (Max. 2 Characters)</label>
-        <input type="text" name="inputCode" id="inputCode" class="form-control" placeholder="Category Code" maxlength="2" pattern="[A-Za-z0-9]{2}" title="Please enter exactly 2 alphanumeric characters." required autofocus /><br>
-        
-        <label for="inputName" class="mb-2">Category Name</label>
-        <input type="text" name="inputName" id="inputName" class="form-control" placeholder="Category Name" required autofocus /><br>
+  {% if user %}
+    {% if user['user_level'] == 'MANAGER' %}
+      <div class="container-fluid py-5">
+        <h1 class="display-7 fw-bold text-center mb-2">ADD CATEGORY</h1>
+        <form id="form-insert" action="" method="POST">
+            
+            <label for="inputCode" class="mb-2">Category Code (Max. 2 Characters)</label>
+            <input type="text" name="inputCode" id="inputCode" class="form-control" placeholder="Category Code" maxlength="2" pattern="[A-Za-z0-9]{2}" title="Please enter exactly 2 alphanumeric characters." required autofocus /><br>
+            
+            <label for="inputName" class="mb-2">Category Name</label>
+            <input type="text" name="inputName" id="inputName" class="form-control" placeholder="Category Name" required autofocus /><br>
 
-        <button class="btn btn-lg btn-primary btn-block" type="submit">Add Category</button>      
-    </form>
-  </div>
-  {% else %}
-    <div class="container-fluid d-flex justify-content-center align-items-center min-vh-100">
-        <h1 class="text-center fw-bold display-5">YOU ARE NOT AUTHORIZED</h1>
-    </div>
+            <button class="btn btn-lg btn-primary btn-block" type="submit">Add Category</button>      
+        </form>
+      </div>
+    {% else %}
+      <div class="container-fluid d-flex justify-content-center align-items-center min-vh-100">
+          <h1 class="text-center fw-bold display-5">YOU ARE NOT AUTHORIZED</h1>
+      </div>
+    {% endif %}
   {% endif %}
 </div>
+
+<script>
+  document.getElementById('form-insert').addEventListener('submit', async (e) => {
+      e.preventDefault();
+  
+      const formData = new FormData(e.target);
+      const data = {};
+      formData.forEach((value, key) => {
+          data[key] = value;
+      });
+  
+      // Get CSRF token from cookies
+      const csrfToken = document.cookie.split('; ').find(row => row.startsWith('csrf_access_token')).split('=')[1];
+  
+      // Define the route
+      const route = `/category`;  // Replace with your specific route
+  
+      const response = await fetch(route, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': csrfToken,  // Include CSRF token in headers
+        },
+        body: JSON.stringify(data),
+        credentials: 'include'  // Include cookies (JWT and CSRF) in the request
+      });
+  
+
+      const hello = await response.json();
+
+      if (response.ok) {
+          alert(hello.message);
+          window.location.href = '/view_cat';
+      } else {
+          alert('Error: ' + hello.message);
+      }
+      });
+
+</script>
+
 {% include 'footer.html' %}

@@ -17,14 +17,16 @@
             <td>{{row.mac_desc}}</td>
             <td>{{row.mac_cat_name}}</td>
             <td>{{row.mac_loc_name}}</td>
-            {% if session.user_level == 'MANAGER' %}
+            {% if user %}
+                {% if user['user_level'] == 'MANAGER' %}
                 <td>
                     <a class="edit" title="Edit" href="{{ url_for('views.editMachine', mac_code = row.mac_code) }}"><i class="fa-regular fa-pen-to-square"></i></a>&emsp;
                     <a title="Delete" onclick="return confirm('Are you sure to delete?');"  href="{{ url_for('views.deleteMachine',mac_code=row.mac_code) }}"><i class="fa-regular fa-trash-can"></i></a>
                 </td>
-            {% else %}
-                <td></td>
-            {% endif %}
+                {% else %}
+                    <td></td>
+                {% endif %}
+            {% endif %}    
 	    </tr>
         {% endfor %}
     </table></div>

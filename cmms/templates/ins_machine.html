@@ -1,44 +1,86 @@
 {% include 'navbar(signed).html' %}
 <!-- Insert Form -->
 <div class="p-4 mb-4 bg-light rounded-3">
-  {% if session.user_level == 'MANAGER' %}
-  <div class="container-fluid py-5">
-    <h1 class="display-7 fw-bold text-center mb-2">ADD MACHINE</h1>
+  {% if user %}
+    {% if user['user_level'] == 'MANAGER' %}
+      <div class="container-fluid py-5">
+        <h1 class="display-7 fw-bold text-center mb-2">ADD MACHINE</h1>
 
-    <form id="form-insert" action="/api/insert_mac" method="POST">
-      
-      <label for="inputCode" class="mb-2">Machine Code</label>
-      <input type="text" name="inputCode" id="inputCode" class="form-control" placeholder="Machine Code" required autofocus/> <br>
-      
-      <label for="inputName" class="mb-2">Machine Name</label><br>
-      <input type="text" name="inputName" id="inputName" class="form-control" placeholder="Machine Name" required autofocus/><br>
-      
-      <label for="inputDescription" class="mb-2">Machine Description</label>
-      <input type="text" name="inputDescription" id="inputDescription" class="form-control" placeholder="Machine Description" required autofocus/><br>
+        <form id="form-insert" action="/api/insert_mac" method="POST">
+          
+          <label for="inputCode" class="mb-2">Machine Code</label>
+          <input type="text" name="inputCode" id="inputCode" class="form-control" placeholder="Machine Code" required autofocus/> <br>
+          
+          <label for="inputName" class="mb-2">Machine Name</label><br>
+          <input type="text" name="inputName" id="inputName" class="form-control" placeholder="Machine Name" required autofocus/><br>
+          
+          <label for="inputDescription" class="mb-2">Machine Description</label>
+          <input type="text" name="inputDescription" id="inputDescription" class="form-control" placeholder="Machine Description" required autofocus/><br>
 
-      <label for="inputCategory" class="mb-2">Machine Category</label>
-      <select class="form-control" id="inputCategory" name="inputCategory">
-        <option value="" selected="selected">Select a Category</option>
-        {% for i in category %}
-        <option value='{{ i.mac_cat_code }}'>{{ i.mac_cat_name }}</option>
-        {% endfor %}
-      </select><br>
+          <label for="inputCategory" class="mb-2">Machine Category</label>
+          <select class="form-control" id="inputCategory" name="inputCategory">
+            <option value="" selected disabled>Select a Category</option>
+            {% for i in category %}
+            <option value='{{ i.mac_cat_code }}'>{{ i.mac_cat_name }}</option>
+            {% endfor %}
+          </select><br>
 
-      <label for="inputLocation" class="mb-2">Machine Location</label>
-      <select class="form-control" id="inputLocation" name="inputLocation">
-        <option value="" selected="selected">Select a Location</option>
-        {% for i in location %}
-        <option value='{{ i.mac_loc_code }}'>{{ i.mac_loc_name }}</option>
-        {% endfor %}
-      </select><br>
+          <label for="inputLocation" class="mb-2">Machine Location</label>
+          <select class="form-control" id="inputLocation" name="inputLocation">
+            <option value="" selected disabled>Select a Location</option>
+            {% for i in location %}
+            <option value='{{ i.mac_loc_code }}'>{{ i.mac_loc_name }}</option>
+            {% endfor %}
+          </select><br>
 
-      <button class="btn btn-lg btn-primary btn-block" type="submit">Insert</button>      
-    </form>
-  </div>
-  {% else %}
-    <div class="container-fluid d-flex justify-content-center align-items-center min-vh-100">
-        <h1 class="text-center fw-bold display-5">YOU ARE NOT AUTHORIZED</h1>
+        <button class="btn btn-lg btn-primary btn-block" type="submit">Insert</button>      
+      </form>
     </div>
+    {% else %}
+      <div class="container-fluid d-flex justify-content-center align-items-center min-vh-100">
+        <h1 class="text-center fw-bold display-5">YOU ARE NOT AUTHORIZED</h1>
+      </div>
+    {% endif %}
   {% endif %}
 </div>
+
+<script>
+    document.getElementById('form-insert').addEventListener('submit', async (e) => {
+        e.preventDefault();
+    
+        const formData = new FormData(e.target);
+        const data = {};
+        formData.forEach((value, key) => {
+            data[key] = value;
+        });
+    
+        // Get CSRF token from cookies
+        const csrfToken = document.cookie.split('; ').find(row => row.startsWith('csrf_access_token')).split('=')[1];
+    
+        // Define the route
+        const route = `/api/insert_mac`;  // Replace with your specific route
+    
+        const response = await fetch(route, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': csrfToken,  // Include CSRF token in headers
+          },
+          body: JSON.stringify(data),
+          credentials: 'include'  // Include cookies (JWT and CSRF) in the request
+        });
+    
+
+        const hello = await response.json();
+
+        if (response.ok) {
+            alert(hello.message);
+            window.location.href = '/view_mac';
+        } else {
+            alert('Error: ' + hello.message);
+        }
+        });
+
+</script>
+
   {% include 'footer.html' %}

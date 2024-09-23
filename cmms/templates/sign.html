@@ -1,51 +1,98 @@
 {% include 'navbar(signed).html' %}
 <div class="bg-light rounded-3 mb-4 p-5">
-    {% if session.user_level == 'MANAGER' %}
-    <div class="container-fluid py-5">
-        <h1 class="text-center fw-bold display-5">REGISTER</h1>
-
-            <form id="form-insert" action="{{ url_for('auth_forms.register') }}" method="POST">
-                {{ form.hidden_tag() }}
-
-                <label for="inputName" class="mb-2">{{ form.name.label.text }}</label><br>
-                {{ form.name() }}<br>
-
-                <label for="inputEmail" class="mb-2">{{ form.email.label.text }}</label><br>
-                {{ form.email() }}<br>
-
-                <label for="inputPassword" class="mb-2">{{ form.password.label.text }}</label><br>
-                {{ form.password() }}<br>
-
-                <label for="confirmPassword" class="mb-2">{{ form.confirm_password.label.text }}</label><br>
-                {{ form.confirm_password() }}<br>
-                <div id="passwordHelpBlock" class="form-text">
-                    <p>Password must contain:</p>
-                    <ul>
-                        <li id="length" class="invalid">At least 8 characters</li>
-                        <li id="lowercase" class="invalid">At least one lowercase letter</li>
-                        <li id="uppercase" class="invalid">At least one uppercase letter</li>
-                        <li id="digit" class="invalid">At least one digit</li>
-                        <li id="special" class="invalid">At least one special character (@$!%*?&)</li>
-                        <li id="match" class="invalid">Passwords must match</li>
-                    </ul>
-                </div>
+    {% if user %}
+        {% if user['user_level'] == 'MANAGER' %}
+            <div class="container-fluid py-5">
+                <h1 class="text-center fw-bold display-5">REGISTER</h1>
+            
+                <form id="form-insert" action="" method="POST">
+                    <label for="inputName" class="mb-2">Name</label><br>
+                    <input type="text" class="form-control" id="inputName" name="inputName" placeholder="Name" required autofocus><br>
+                    
+                    <label for="inputEmail" class="mb-2">Email address</label><br>
+                    <input type="email" class="form-control" id="inputEmail" name="inputEmail" placeholder="Email address" required><br>
+                    
+                    <label for="inputPassword" class="mb-2">Password</label><br>
+                    <input type="password" class="form-control" id="inputPassword" name="inputPassword" placeholder="Password" required><br>
+                    
+                    <label for="confirmPassword" class="mb-2">Confirm Password</label><br>
+                    <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" placeholder="Confirm Password" required><br>
+                    
+                    <div id="passwordHelpBlock" class="form-text">
+                        <p>Password must contain:</p>
+                        <ul>
+                            <li id="length" class="invalid">At least 8 characters</li>
+                            <li id="lowercase" class="invalid">At least one lowercase letter</li>
+                            <li id="uppercase" class="invalid">At least one uppercase letter</li>
+                            <li id="digit" class="invalid">At least one digit</li>
+                            <li id="special" class="invalid">At least one special character (@$!%*?&)</li>
+                            <li id="match" class="invalid">Passwords must match</li>
+                        </ul>
+                    </div>
+                    
+                    <label for="inputLevel" class="mb-2">User Level</label><br>
+                    <select class="form-control" id="inputLevel" name="inputLevel" required>
+                        <option value="" selected disabled>Select a Level</option>
+                        <option value="MANAGER">MANAGER</option>
+                        <option value="OPERATOR">MACHINE OPERATOR</option>
+                        <option value="TECHNICIAN">SERVICE TECHNICIAN</option>
+                    </select><br>
                 
-                <label for="inputLevel" class="mb-2">{{ form.level.label.text }}</label><br>
-                {{ form.level() }}<br>
-
-                <div class="input-field">
-                    {{ form.submit() }}
-                </div>    
-            </form>
-    </div>
-    {% else %}
-
-    <div class="container-fluid d-flex justify-content-center align-items-center min-vh-100">
-        <h1 class="text-center fw-bold display-5">YOU ARE NOT AUTHORIZED</h1>
-    </div>
-    
+                    <div class="input-field">
+                        <input type="submit" class="submit" value="Sign Up">
+                    </div>
+                </form>
+            </div>
+            
+            </div>
+        {% else %}
+            <div class="container-fluid d-flex justify-content-center align-items-center min-vh-100">
+                <h1 class="text-center fw-bold display-5">YOU ARE NOT AUTHORIZED</h1>
+            </div>
+        {% endif %}
     {% endif %}
 </div>
-    {% include 'footer.html' %}
+{% include 'footer.html' %}
 
-    <script src = "/static/js/check_pass.js"></script>
+<script src="/static/js/check_pass.js"></script>
+
+<script>
+    document.getElementById('form-insert').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        // Retrieve form data
+        const formData = new FormData(e.target);
+        const data = {};
+        formData.forEach((value, key) => {
+            data[key] = value;
+        });
+
+        // Get CSRF token from cookies
+        const csrfToken = document.cookie.split('; ').find(row => row.startsWith('csrf_access_token')).split('=')[1];
+
+        try {
+            const response = await fetch('/signup', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,  // Include CSRF token in headers
+                },
+                body: JSON.stringify(data),
+                credentials: 'include'  // Include cookies (JWT and CSRF) in the request
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                alert(result.message);
+                window.location.href = '/dashBoard';
+            } else {
+                alert('Error: ' + result.message);
+                window.location.href = '/signup';
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('An error occurred. Please try again.');
+        }
+    });
+</script>
